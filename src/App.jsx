@@ -19,29 +19,30 @@ export default function App() {
   }, []);
 
   return (
-  <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-    {/* PANEL IZQUIERDO */}
-    <div
-      style={{
-        width: 360,
-        background: "#222",
-        color: "#fff",
-        padding: 12,
-        overflowY: "auto",
-        zIndex: 10,
-      }}
-    >
-      <h3>Subir CSV SIGPAC</h3>
-      <CsvUpload onData={setRows} />
+    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+      {/* PANEL */}
+      <div
+        style={{
+          width: 360,
+          background: "#222",
+          color: "#fff",
+          padding: 12,
+          overflowY: "auto",
+          zIndex: 1000,
+        }}
+      >
+        <h3 style={{ marginTop: 0 }}>Subir CSV SIGPAC</h3>
+        <CsvUpload onData={setRows} />
 
-      {rows.length > 0 && (
-        <div style={{ marginTop: 12, fontSize: 13 }}>
-          Filas cargadas: <strong>{rows.length}</strong>
-        </div>
-      )}
+        {rows.length > 0 && (
+          <div style={{ marginTop: 12, fontSize: 13 }}>
+            Filas cargadas: <strong>{rows.length}</strong>
+          </div>
+        )}
+      </div>
+
+      {/* MAPA */}
+      <div id="map" style={{ flex: 1 }} />
     </div>
-
-    {/* MAPA */}
-    <div id="map" style={{ flex: 1 }} />
-  </div>
-);
+  );
+}
