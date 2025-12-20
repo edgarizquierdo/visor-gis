@@ -16,7 +16,7 @@ export default function App() {
   return (
     <div
       id="map"
-      style={{ height: "100vh", width: "100%", background: "#eee" }}
+      style={{ height: "100vh", width: "100vw" }}
     />
   );
 }
