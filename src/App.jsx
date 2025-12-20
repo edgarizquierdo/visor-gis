@@ -20,7 +20,10 @@ export default function App() {
 
   return (
     <>
-      <CsvUpload onData={setRows} />
+      <div style={{ padding: 12, background: "#222", color: "#fff" }}>
+  <CsvUpload onData={setRows} />
+</div>
+
 
       {rows.length > 0 && (
         <div style={{ padding: 12 }}>
