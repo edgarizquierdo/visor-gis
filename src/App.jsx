@@ -5,6 +5,7 @@ import CsvUpload from "./CsvUpload";
 
 export default function App() {
   const mapRef = useRef(null);
+  const containerRef = useRef(null);
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
@@ -19,30 +20,38 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-      {/* PANEL */}
+    <div
+      ref={containerRef}
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100vh",
+      }}
+    >
+      {/* CSV UPLOAD – FORZADO ENCIMA DEL MAPA */}
       <div
         style={{
-          width: 360,
-          background: "#222",
-          color: "#fff",
-          padding: 12,
-          overflowY: "auto",
-          zIndex: 1000,
+          position: "absolute",
+          top: 10,
+          left: 10,
+          zIndex: 2000,
+          background: "white",
+          padding: 10,
+          borderRadius: 6,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
         }}
       >
-        <h3 style={{ marginTop: 0 }}>Subir CSV SIGPAC</h3>
         <CsvUpload onData={setRows} />
-
-        {rows.length > 0 && (
-          <div style={{ marginTop: 12, fontSize: 13 }}>
-            Filas cargadas: <strong>{rows.length}</strong>
-          </div>
-        )}
       </div>
 
       {/* MAPA */}
-      <div id="map" style={{ flex: 1 }} />
+      <div
+        id="map"
+        style={{
+          height: "100%",
+          width: "100%",
+        }}
+      />
     </div>
   );
 }
