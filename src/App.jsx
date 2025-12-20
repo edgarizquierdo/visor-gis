@@ -19,31 +19,34 @@ export default function App() {
   }, []);
 
   return (
-    <>
-      <div style={{ padding: 12, background: "#222", color: "#fff" }}>
-  <CsvUpload onData={setRows} />
-</div>
+    <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
+      {/* PANEL CSV */}
+      <div
+        style={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          zIndex: 1000,
+          background: "#222",
+          color: "#fff",
+          padding: 12,
+          borderRadius: 6,
+          width: 320,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+        }}
+      >
+        <h4 style={{ marginTop: 0 }}>Subir CSV SIGPAC</h4>
+        <CsvUpload onData={setRows} />
 
+        {rows.length > 0 && (
+          <div style={{ marginTop: 10, fontSize: 12 }}>
+            Filas cargadas: <strong>{rows.length}</strong>
+          </div>
+        )}
+      </div>
 
-      {rows.length > 0 && (
-        <div style={{ padding: 12 }}>
-          <strong>Preview CSV (primeras 5 filas)</strong>
-          <pre
-            style={{
-              maxHeight: 200,
-              overflow: "auto",
-              background: "#111",
-              color: "#0f0",
-              padding: 10,
-            }}
-          >
-            {JSON.stringify(rows.slice(0, 5), null, 2)}
-          </pre>
-          <div>Total filas cargadas: {rows.length}</div>
-        </div>
-      )}
-
-      <div id="map" style={{ height: "65vh", width: "100%" }} />
-    </>
+      {/* MAPA */}
+      <div id="map" style={{ height: "100%", width: "100%" }} />
+    </div>
   );
 }
