@@ -1,4 +1,4 @@
-iimport React from "react";
+import React from "react";
 
 export default function CsvUpload({ onData }) {
   const handleFile = (e) => {
