@@ -5,7 +5,6 @@ import CsvUpload from "./CsvUpload";
 
 export default function App() {
   const mapRef = useRef(null);
-  const containerRef = useRef(null);
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
@@ -20,38 +19,34 @@ export default function App() {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100vh",
-      }}
-    >
-      {/* CSV UPLOAD – FORZADO ENCIMA DEL MAPA */}
+    <>
+      {/* 🔹 OVERLAY GLOBAL (FUERA del mapa) */}
       <div
         style={{
-          position: "absolute",
-          top: 10,
-          left: 10,
-          zIndex: 2000,
+          position: "fixed",
+          top: 12,
+          left: 12,
+          zIndex: 9999,
           background: "white",
-          padding: 10,
-          borderRadius: 6,
+          padding: "10px",
+          borderRadius: "6px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
         }}
       >
         <CsvUpload onData={setRows} />
+        <div style={{ fontSize: 12, marginTop: 6 }}>
+          Filas cargadas: {rows.length}
+        </div>
       </div>
 
-      {/* MAPA */}
+      {/* 🔹 MAPA */}
       <div
         id="map"
         style={{
-          height: "100%",
-          width: "100%",
+          height: "100vh",
+          width: "100vw",
         }}
       />
-    </div>
+    </>
   );
 }
