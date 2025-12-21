@@ -28,7 +28,7 @@ export default function CsvUpload({ onData }) {
   };
 
   return (
-    <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1000, background: "white", padding: "8px", borderRadius: "4px" }}>
+    <div>
       <input type="file" accept=".csv" onChange={handleFile} />
     </div>
   );
