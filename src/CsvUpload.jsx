@@ -8,22 +8,27 @@ export default function CsvUpload({ onData }) {
     const reader = new FileReader();
 
     reader.onload = () => {
-      const text = reader.result;
-      const lines = String(text).split("\n").filter(Boolean);
+      const text = String(reader.result || "");
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+
       if (lines.length === 0) return;
 
+      // Tu CSV parece venir con ; como separador
       const headers = lines[0].split(";").map((h) => h.trim());
 
       const rows = lines.slice(1).map((line) => {
         const values = line.split(";");
         const obj = {};
         headers.forEach((h, i) => {
-          obj[h] = values[i]?.trim();
+          obj[h] = (values[i] ?? "").trim();
         });
         return obj;
       });
 
-      onData(rows);
+      onData?.(rows);
     };
 
     reader.readAsText(file);
@@ -34,6 +39,7 @@ export default function CsvUpload({ onData }) {
       style={{
         display: "block",
         width: "100%",
+        boxSizing: "border-box",
         background: "#3563E9",
         color: "white",
         padding: "14px 16px",
