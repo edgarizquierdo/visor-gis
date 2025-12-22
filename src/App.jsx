@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.draw.css";
+import "leaflet.polylinemeasure/Leaflet.PolylineMeasure.css";
 import CsvUpload from "./CsvUpload";
 
 export default function App() {
@@ -32,48 +32,20 @@ export default function App() {
     ).addTo(map);
 
     /* =================================================
-       HERRAMIENTAS DE MEDICIÓN (FIX REAL VITE)
+       HERRAMIENTA DE MEDICIÓN (PolylineMeasure)
        ================================================= */
 
-    // Exponer Leaflet globalmente
-    window.L = L;
-
-    // 🔧 Cargar el plugin REAL
-    import("leaflet-draw/dist/leaflet.draw.js").then(() => {
-      console.log("L.Control.Draw =", L.Control?.Draw);
-
-      const drawnItems = new L.FeatureGroup();
-      map.addLayer(drawnItems);
-
-      const drawControl = new L.Control.Draw({
-        position: "topright",
-        draw: {
-          polyline: {
-            shapeOptions: { color: "#f97316", weight: 3 },
-            metric: true,
-          },
-          polygon: {
-            allowIntersection: false,
-            showArea: true,
-            shapeOptions: { color: "#22c55e" },
-          },
-          rectangle: false,
-          circle: false,
-          circlemarker: false,
-          marker: false,
-        },
-        edit: {
-          featureGroup: drawnItems,
-          edit: true,
-          remove: true,
-        },
-      });
-
-      map.addControl(drawControl);
-
-      map.on(L.Draw.Event.CREATED, (e) => {
-        drawnItems.addLayer(e.layer);
-      });
+    import("leaflet.polylinemeasure").then(() => {
+      L.control
+        .polylineMeasure({
+          position: "topright",
+          unit: "metres",
+          showBearings: false,
+          clearMeasurementsOnStop: false,
+          showClearControl: true,
+          showUnitControl: false,
+        })
+        .addTo(map);
     });
   }, []);
 
@@ -144,3 +116,4 @@ export default function App() {
     </div>
   );
 }
+
