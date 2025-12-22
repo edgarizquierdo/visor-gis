@@ -50,15 +50,18 @@ function polygonAreaHa(latlngs) {
       (toRad(p2.lng) - toRad(p1.lng)) *
       (2 + Math.sin(toRad(p1.lat)) + Math.sin(toRad(p2.lat)));
   }
+
   const m2 = Math.abs((sum * R * R) / 2);
   return m2 / 10000; // hectáreas
 }
 
 export default function App() {
   const mapRef = useRef(null);
-  const fgRef = useRef(null);
-  const tempLayerRef = useRef(null);
+  const layerRef = useRef(null);
+
+  const tempShapeRef = useRef(null);
   const pointsRef = useRef([]);
+  const vertexMarkersRef = useRef([]);
   const modeRef = useRef("none");
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -71,55 +74,64 @@ export default function App() {
     const map = L.map("map").setView([41.5, 1.5], 8);
     mapRef.current = map;
 
+    // Satélite
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { attribution: "Tiles © Esri" }
     ).addTo(map);
 
+    // Municipios / etiquetas
     L.tileLayer(
       "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
       { attribution: "© Esri — Boundaries & Places" }
     ).addTo(map);
 
     const fg = L.featureGroup().addTo(map);
-    fgRef.current = fg;
+    layerRef.current = fg;
 
     map.on("click", (e) => {
       if (modeRef.current === "none") return;
 
       const latlng = e.latlng;
-      const fg = fgRef.current;
       pointsRef.current.push(latlng);
 
-      // DISTANCIA → solo 2 puntos
+      // 🔵 VÉRTICE VISIBLE
+      const vertex = L.circleMarker(latlng, {
+        radius: 5,
+        color: "#0f172a",
+        weight: 2,
+        fillColor: "#ffffff",
+        fillOpacity: 1,
+      }).addTo(fg);
+      vertexMarkersRef.current.push(vertex);
+
+      // 📏 DISTANCIA (2 puntos)
       if (modeRef.current === "distance") {
         if (pointsRef.current.length === 2) {
           const [a, b] = pointsRef.current;
           const d = haversineMeters(a, b);
 
-          const line = L.polyline([a, b], { weight: 3 }).addTo(fg);
+          L.polyline([a, b], { weight: 3 }).addTo(fg);
           L.tooltip({ permanent: true, direction: "center" })
             .setContent(`${d.toFixed(1)} m`)
             .setLatLng(b)
             .addTo(fg);
 
-          pointsRef.current = [];
-          modeRef.current = "none";
-          setMode("none");
+          resetMeasure();
         }
         return;
       }
 
-      // ÁREA
-      if (!tempLayerRef.current) {
-        tempLayerRef.current = L.polygon([latlng], {
+      // 🔺 ÁREA
+      if (!tempShapeRef.current) {
+        tempShapeRef.current = L.polygon([latlng], {
           fillOpacity: 0.15,
         }).addTo(fg);
       } else {
         const pts = [...pointsRef.current];
-        tempLayerRef.current.setLatLngs(pts);
+        tempShapeRef.current.setLatLngs(pts);
 
-        // Cerrar polígono al clicar cerca del primer punto
+        // cerrar polígono al clicar cerca del primer punto
         if (pts.length >= 3 && latlng.distanceTo(pts[0]) < 15) {
           const ha = polygonAreaHa(pts);
           const center = L.polygon(pts).getBounds().getCenter();
@@ -129,13 +141,18 @@ export default function App() {
             .setLatLng(center)
             .addTo(fg);
 
-          tempLayerRef.current = null;
-          pointsRef.current = [];
-          modeRef.current = "none";
-          setMode("none");
+          resetMeasure();
         }
       }
     });
+
+    function resetMeasure() {
+      tempShapeRef.current = null;
+      pointsRef.current = [];
+      vertexMarkersRef.current = [];
+      modeRef.current = "none";
+      setMode("none");
+    }
   }, []);
 
   useEffect(() => {
@@ -144,23 +161,22 @@ export default function App() {
   }, [sidebarOpen]);
 
   const startDistance = () => {
-    pointsRef.current = [];
-    tempLayerRef.current = null;
+    clearTemp();
     modeRef.current = "distance";
     setMode("distance");
   };
 
   const startArea = () => {
-    pointsRef.current = [];
-    tempLayerRef.current = null;
+    clearTemp();
     modeRef.current = "area";
     setMode("area");
   };
 
-  const clearAll = () => {
-    fgRef.current?.clearLayers();
+  const clearTemp = () => {
+    layerRef.current?.clearLayers();
     pointsRef.current = [];
-    tempLayerRef.current = null;
+    vertexMarkersRef.current = [];
+    tempShapeRef.current = null;
     modeRef.current = "none";
     setMode("none");
   };
@@ -232,7 +248,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={clearAll}
+            onClick={clearTemp}
             style={{ ...toolBtnStyle, background: "#fee2e2" }}
           >
             🗑️
