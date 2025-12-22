@@ -85,23 +85,24 @@ export default function App() {
       >
         {/* BOTÓN HAMBURGUESA – NO MOLESTA AL ZOOM */}
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            position: "absolute",
-            top: 20,
-            left: sidebarOpen ? 20 : 20,
-            zIndex: 2000,
-            background: "#ffffff",
-            border: "none",
-            borderRadius: 8,
-            padding: "8px 12px",
-            cursor: "pointer",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-            fontSize: 18,
-          }}
-        >
-          ☰
-        </button>
+  onClick={() => setSidebarOpen(!sidebarOpen)}
+  style={{
+    position: "absolute",
+    top: 20,
+    right: 20,
+    zIndex: 2000,
+    background: "#ffffff",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+    fontSize: 18,
+  }}
+>
+  ☰
+</button>
+
 
         <div id="map" style={{ width: "100%", height: "100%" }} />
       </div>
