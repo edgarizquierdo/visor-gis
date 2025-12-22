@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
+
+// 🔧 NECESARIO PARA leaflet-draw en Vite
+window.L = L;
+
 import "leaflet/dist/leaflet.css";
 import CsvUpload from "./CsvUpload";
 import "leaflet-draw/dist/leaflet.draw.css";
