@@ -4,11 +4,21 @@
     <meta charset="UTF-8" />
     <title>Visor GIS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ✅ FIX MÍNIMO: forzar visibilidad de Leaflet.Draw -->
+    <style>
+      .leaflet-draw-toolbar {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+    </style>
   </head>
+
   <body>
     <div id="root"></div>
 
-    <!-- 🔴 ESTO ES LO QUE TE FALTABA -->
+    <!-- Entrada de Vite / React -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
