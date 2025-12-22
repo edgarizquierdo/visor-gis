@@ -22,19 +22,16 @@ export default function App() {
   <div
     style={{
       position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
+      top: 20,
+      left: 20,
+      zIndex: 999999,
       background: "red",
       color: "white",
-      zIndex: 999999,
-      fontSize: 40,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
+      padding: 20,
+      fontSize: 20,
     }}
   >
-    SI VES ESTO, VERCEL ESTÁ DESPLEGANDO
+    SOY EL CSV UPLOAD
   </div>
 );
+
