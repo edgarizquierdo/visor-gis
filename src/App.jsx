@@ -195,10 +195,10 @@ export default function App() {
       >
         <div style={{ display: "flex", alignItems: "center" }}>
           {sidebarOpen && (
-  <h2 style={{ margin: 0, marginBottom: 18 }}>
-    Datos SIGPAC
-  </h2>
-)}
+            <h2 style={{ margin: 0, marginBottom: 18 }}>
+              Datos SIGPAC
+            </h2>
+          )}
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             style={{
@@ -231,26 +231,49 @@ export default function App() {
             gap: 8,
           }}
         >
+          {/* REGLA */}
           <button
             onClick={startDistance}
             style={{
               ...toolBtnStyle,
-              background: mode === "distance" ? "#e2e8f0" : "white",
+              background: mode === "distance" ? "#16a34a" : "white",
             }}
           >
-            <img src="/icons/rule.png" alt="Regla" width={22} />
+            <img
+              src="/icons/rule.png"
+              alt="Regla"
+              width={22}
+              style={{
+                filter:
+                  mode === "distance"
+                    ? "brightness(0) invert(1)"
+                    : "none",
+              }}
+            />
           </button>
 
+          {/* ÁREA */}
           <button
             onClick={startArea}
             style={{
               ...toolBtnStyle,
-              background: mode === "area" ? "#e2e8f0" : "white",
+              background: mode === "area" ? "#16a34a" : "white",
             }}
           >
-            <img src="/icons/polygon.png" alt="Área" width={22} />
+            <img
+              src="/icons/polygon.png"
+              alt="Área"
+              width={22}
+              style={{
+                filter:
+                  mode === "area"
+                    ? "brightness(0) invert(1)"
+                    : "none",
+              }}
+            />
           </button>
 
+          {/* BORRAR */}
           <button
             onClick={clearTemp}
             style={{ ...toolBtnStyle, background: "#fee2e2" }}
