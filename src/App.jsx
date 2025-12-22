@@ -19,9 +19,22 @@ export default function App() {
   }, []);
 
   return (
-    <>
-      <CsvUpload onData={setRows} />
-      <div id="map" style={{ height: "100vh", width: "100%" }} />
-    </>
-  );
-}
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      background: "red",
+      color: "white",
+      zIndex: 999999,
+      fontSize: 40,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    SI VES ESTO, VERCEL ESTÁ DESPLEGANDO
+  </div>
+);
