@@ -61,7 +61,7 @@ export default function App() {
         showUnitControl: false,
       }).addTo(map);
 
-      // Exponer control para el toolbar custom
+      // Exponer control (métodos internos reales)
       window.__polylineMeasure = measureControl;
     });
   }, []);
@@ -143,7 +143,7 @@ export default function App() {
         >
           <button
             title="Medir distancia"
-            onClick={() => window.__polylineMeasure?.toggleMeasure()}
+            onClick={() => window.__polylineMeasure?._toggleMeasure()}
             style={toolBtnStyle}
           >
             <img
@@ -155,7 +155,7 @@ export default function App() {
 
           <button
             title="Medir área"
-            onClick={() => window.__polylineMeasure?.toggleMeasure()}
+            onClick={() => window.__polylineMeasure?._toggleMeasure()}
             style={toolBtnStyle}
           >
             <img
@@ -180,4 +180,3 @@ export default function App() {
     </div>
   );
 }
-
