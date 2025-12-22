@@ -4,6 +4,23 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.polylinemeasure/Leaflet.PolylineMeasure.css";
 import CsvUpload from "./CsvUpload";
 
+/* =========================
+   ESTILO BOTONES TOOLBAR
+   ========================= */
+const toolBtnStyle = {
+  width: 40,
+  height: 40,
+  borderRadius: 8,
+  border: "none",
+  cursor: "pointer",
+  background: "white",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 6,
+};
+
 export default function App() {
   const mapRef = useRef(null);
   const [rows, setRows] = useState([]);
@@ -31,24 +48,25 @@ export default function App() {
       { attribution: "© Esri — Boundaries & Places" }
     ).addTo(map);
 
-    /* =================================================
-       HERRAMIENTA DE MEDICIÓN (PolylineMeasure)
-       ================================================= */
-
+    /* =========================
+       MEDICIÓN (PolylineMeasure)
+       ========================= */
     import("leaflet.polylinemeasure").then(() => {
-      L.control
-        .polylineMeasure({
-          position: "topright",
-          unit: "metres",
-          showBearings: false,
-          clearMeasurementsOnStop: false,
-          showClearControl: true,
-          showUnitControl: false,
-        })
-        .addTo(map);
+      const measureControl = L.control.polylineMeasure({
+        position: "topright",
+        unit: "metres",
+        showBearings: false,
+        clearMeasurementsOnStop: false,
+        showClearControl: false,
+        showUnitControl: false,
+      }).addTo(map);
+
+      // Exponer control para el toolbar custom
+      window.__polylineMeasure = measureControl;
     });
   }, []);
 
+  // Reajustar mapa al plegar sidebar
   useEffect(() => {
     if (!mapRef.current) return;
     setTimeout(() => mapRef.current.invalidateSize(), 320);
@@ -109,11 +127,56 @@ export default function App() {
         )}
       </div>
 
-      {/* MAPA */}
-      <div style={{ flex: 1 }}>
+      {/* MAPA + TOOLBAR */}
+      <div style={{ flex: 1, position: "relative" }}>
+        {/* TOOLBAR GIS */}
+        <div
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <button
+            title="Medir distancia"
+            onClick={() => window.__polylineMeasure?.startMeasure()}
+            style={toolBtnStyle}
+          >
+            <img
+              src="/icons/rule.png"
+              alt="Regla"
+              style={{ width: 22, height: 22 }}
+            />
+          </button>
+
+          <button
+            title="Medir área"
+            onClick={() => window.__polylineMeasure?.startMeasure()}
+            style={toolBtnStyle}
+          >
+            <img
+              src="/icons/polygon.png"
+              alt="Área"
+              style={{ width: 22, height: 22 }}
+            />
+          </button>
+
+          <button
+            title="Borrar mediciones"
+            onClick={() => window.__polylineMeasure?.clearMeasurements()}
+            style={{ ...toolBtnStyle, background: "#fee2e2" }}
+          >
+            🗑️
+          </button>
+        </div>
+
+        {/* MAPA */}
         <div id="map" style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
   );
 }
-
