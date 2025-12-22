@@ -194,7 +194,11 @@ export default function App() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center" }}>
-          {sidebarOpen && <h2 style={{ margin: 0 }}>Datos SIGPAC</h2>}
+          {sidebarOpen && (
+  <h2 style={{ margin: 0, marginBottom: 18 }}>
+    Datos SIGPAC
+  </h2>
+)}
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             style={{
