@@ -4,9 +4,6 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.polylinemeasure/Leaflet.PolylineMeasure.css";
 import CsvUpload from "./CsvUpload";
 
-/* =========================
-   ESTILO BOTONES TOOLBAR
-   ========================= */
 const toolBtnStyle = {
   width: 40,
   height: 40,
@@ -23,6 +20,7 @@ const toolBtnStyle = {
 
 export default function App() {
   const mapRef = useRef(null);
+  const measureRef = useRef(null);
   const [rows, setRows] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -32,41 +30,32 @@ export default function App() {
     const map = L.map("map").setView([41.5, 1.5], 8);
     mapRef.current = map;
 
-    /* =========================
-       CAPA BASE: SATÉLITE
-       ========================= */
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { attribution: "Tiles © Esri" }
     ).addTo(map);
 
-    /* =========================
-       CAPA SUPERIOR: MUNICIPIOS
-       ========================= */
     L.tileLayer(
       "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
       { attribution: "© Esri — Boundaries & Places" }
     ).addTo(map);
 
-    /* =========================
-       MEDICIÓN (PolylineMeasure)
-       ========================= */
+    // ⚠️ IMPORTANTE: inicializar SIN addTo(map)
     import("leaflet.polylinemeasure").then(() => {
-      const measureControl = L.control.polylineMeasure({
+      measureRef.current = L.control.polylineMeasure({
         position: "topright",
         unit: "metres",
         showBearings: false,
         clearMeasurementsOnStop: false,
         showClearControl: false,
         showUnitControl: false,
-      }).addTo(map);
+      });
 
-      // Exponer control (métodos internos reales)
-      window.__polylineMeasure = measureControl;
+      // Enlazar manualmente al mapa
+      measureRef.current._map = map;
     });
   }, []);
 
-  // Reajustar mapa al plegar sidebar
   useEffect(() => {
     if (!mapRef.current) return;
     setTimeout(() => mapRef.current.invalidateSize(), 320);
@@ -90,7 +79,6 @@ export default function App() {
           {sidebarOpen && (
             <h2 style={{ margin: 0, fontSize: 22 }}>Datos SIGPAC</h2>
           )}
-
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             style={{
@@ -102,7 +90,6 @@ export default function App() {
               cursor: "pointer",
               background: "#334155",
               color: "white",
-              fontSize: 16,
             }}
           >
             {sidebarOpen ? "◀" : "▶"}
@@ -129,7 +116,6 @@ export default function App() {
 
       {/* MAPA + TOOLBAR */}
       <div style={{ flex: 1, position: "relative" }}>
-        {/* TOOLBAR GIS */}
         <div
           style={{
             position: "absolute",
@@ -142,39 +128,22 @@ export default function App() {
           }}
         >
           <button
-            title="Medir distancia"
-            onClick={() => window.__polylineMeasure?._toggleMeasure()}
+            title="Medir distancia / área"
+            onClick={() => measureRef.current?._toggleMeasure()}
             style={toolBtnStyle}
           >
-            <img
-              src="/icons/rule.png"
-              alt="Regla"
-              style={{ width: 22, height: 22 }}
-            />
-          </button>
-
-          <button
-            title="Medir área"
-            onClick={() => window.__polylineMeasure?._toggleMeasure()}
-            style={toolBtnStyle}
-          >
-            <img
-              src="/icons/polygon.png"
-              alt="Área"
-              style={{ width: 22, height: 22 }}
-            />
+            <img src="/icons/rule.png" alt="Regla" style={{ width: 22 }} />
           </button>
 
           <button
             title="Borrar mediciones"
-            onClick={() => window.__polylineMeasure?.clearMeasurements()}
+            onClick={() => measureRef.current?.clearMeasurements()}
             style={{ ...toolBtnStyle, background: "#fee2e2" }}
           >
             🗑️
           </button>
         </div>
 
-        {/* MAPA */}
         <div id="map" style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
