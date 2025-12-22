@@ -132,3 +132,13 @@ export default function App() {
               <CsvUpload onData={setRows} />
             </div>
           </div>
+        )}
+      </div>
+
+      {/* MAPA */}
+      <div style={{ flex: 1 }}>
+        <div id="map" style={{ width: "100%", height: "100%" }} />
+      </div>
+    </div>
+  );
+}
