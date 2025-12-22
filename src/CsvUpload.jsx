@@ -1,6 +1,8 @@
-import React from "react";
+import { useRef } from "react";
 
 export default function CsvUpload({ onData }) {
+  const inputRef = useRef();
+
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -9,14 +11,17 @@ export default function CsvUpload({ onData }) {
 
     reader.onload = () => {
       const text = reader.result;
-      const lines = text.split("\n");
+      const lines = text.split("\n").filter(Boolean);
+
+      if (lines.length < 2) return;
+
       const headers = lines[0].split(";").map(h => h.trim());
 
       const rows = lines.slice(1).map(line => {
         const values = line.split(";");
         const obj = {};
         headers.forEach((h, i) => {
-          obj[h] = values[i]?.trim();
+          obj[h] = values[i]?.trim() || "";
         });
         return obj;
       });
@@ -30,19 +35,46 @@ export default function CsvUpload({ onData }) {
   return (
     <div
       style={{
-        position: "fixed",   // ⬅️ CLAVE ABSOLUTA
-        top: 12,
-        left: 12,
-        zIndex: 9999,
-        background: "white",
-        padding: 10,
-        borderRadius: 6,
-        boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
+        background: "#ffffff",
+        borderRadius: 8,
+        padding: 12,
+        color: "#111827",
       }}
     >
-      <strong>Subir CSV</strong>
-      <br />
-      <input type="file" accept=".csv" onChange={handleFile} />
+      <h4 style={{ marginTop: 0, marginBottom: 8 }}>
+        Subir CSV
+      </h4>
+
+      <p style={{ fontSize: 13, marginBottom: 10, color: "#374151" }}>
+        Archivo con códigos SIGPAC por columnas
+      </p>
+
+      {/* INPUT OCULTO */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".csv"
+        onChange={handleFile}
+        style={{ display: "none" }}
+      />
+
+      {/* BOTÓN BONITO */}
+      <button
+        onClick={() => inputRef.current.click()}
+        style={{
+          width: "100%",
+          padding: "10px 12px",
+          background: "#2563eb",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer",
+          fontSize: 14,
+          fontWeight: 500,
+        }}
+      >
+        📁 Seleccionar archivo CSV
+      </button>
     </div>
   );
 }
