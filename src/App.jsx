@@ -11,12 +11,18 @@ export default function App() {
   useEffect(() => {
     if (mapRef.current) return;
 
-    const map = L.map("map").setView([41.5, 1.5], 8);
+    const map = L.map("map", {
+      zoomControl: false, // ⛔ quitamos zoom por defecto
+    }).setView([41.5, 1.5], 8);
+
     mapRef.current = map;
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap",
     }).addTo(map);
+
+    // ✅ Zoom a la derecha → no se solapa con hamburguesa
+    L.control.zoom({ position: "topright" }).addTo(map);
   }, []);
 
   return (
@@ -30,13 +36,20 @@ export default function App() {
           color: "white",
           overflow: "hidden",
           padding: sidebarOpen ? 16 : 0,
+          boxShadow: sidebarOpen
+            ? "2px 0 6px rgba(0,0,0,0.3)"
+            : "none",
         }}
       >
-        <h3 style={{ marginTop: 0 }}>📂 Datos SIGPAC</h3>
+        <h3 style={{ marginTop: 0, marginBottom: 12 }}>
+          📂 Datos SIGPAC
+        </h3>
+
+        {/* CSV DENTRO DEL MENÚ */}
         <CsvUpload onData={setRows} />
 
         {rows.length > 0 && (
-          <p style={{ marginTop: 10, fontSize: 12 }}>
+          <p style={{ marginTop: 12, fontSize: 13, color: "#d1d5db" }}>
             Filas cargadas: <strong>{rows.length}</strong>
           </p>
         )}
@@ -44,21 +57,23 @@ export default function App() {
 
       {/* MAPA */}
       <div style={{ flex: 1, position: "relative" }}>
-        {/* BOTÓN TOGGLE */}
+        {/* BOTÓN HAMBURGUESA */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           style={{
             position: "absolute",
-            top: 10,
-            left: 10,
+            top: 12,
+            left: 12,
             zIndex: 3000,
             background: "white",
             border: "none",
             borderRadius: 6,
-            padding: "6px 10px",
+            padding: "8px 12px",
             cursor: "pointer",
             boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            fontSize: 18,
           }}
+          title="Abrir / cerrar menú"
         >
           ☰
         </button>
