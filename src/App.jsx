@@ -14,9 +14,25 @@ export default function App() {
     const map = L.map("map").setView([41.5, 1.5], 8);
     mapRef.current = map;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap",
-    }).addTo(map);
+    /* =========================
+       CAPA BASE: SATÉLITE
+       ========================= */
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: "Tiles © Esri",
+      }
+    ).addTo(map);
+
+    /* =========================
+       CAPA SUPERIOR: MUNICIPIOS
+       ========================= */
+    L.tileLayer(
+      "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: "© Esri — Boundaries & Places",
+      }
+    ).addTo(map);
   }, []);
 
   useEffect(() => {
@@ -29,7 +45,7 @@ export default function App() {
       {/* SIDEBAR */}
       <div
         style={{
-          width: sidebarOpen ? 340 : 44, // franja visible al plegar
+          width: sidebarOpen ? 340 : 44,
           transition: "width 0.3s ease",
           background: "#1f2933",
           color: "white",
@@ -44,7 +60,6 @@ export default function App() {
             <h2 style={{ margin: 0, fontSize: 22 }}>Datos SIGPAC</h2>
           )}
 
-          {/* FLECHA DENTRO DEL MENÚ */}
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             title={sidebarOpen ? "Plegar menú" : "Desplegar menú"}
@@ -68,7 +83,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* CONTENIDO ARRIBA (justo debajo del título) */}
+        {/* CONTENIDO */}
         {sidebarOpen && (
           <div style={{ marginTop: 16 }}>
             <div
@@ -104,3 +119,4 @@ export default function App() {
     </div>
   );
 }
+
