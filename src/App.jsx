@@ -143,7 +143,7 @@ export default function App() {
         >
           <button
             title="Medir distancia"
-            onClick={() => window.__polylineMeasure?.startMeasure()}
+            onClick={() => window.__polylineMeasure?.toggleMeasure()}
             style={toolBtnStyle}
           >
             <img
@@ -155,7 +155,7 @@ export default function App() {
 
           <button
             title="Medir área"
-            onClick={() => window.__polylineMeasure?.startMeasure()}
+            onClick={() => window.__polylineMeasure?.toggleMeasure()}
             style={toolBtnStyle}
           >
             <img
@@ -180,3 +180,4 @@ export default function App() {
     </div>
   );
 }
+
