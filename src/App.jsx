@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import CsvUpload from "./CsvUpload";
@@ -20,17 +20,9 @@ const toolBtnStyle = {
   padding: 6,
 };
 
-function formatDistance(m) {
-  if (m < 1000) return `${m.toFixed(1)} m`;
-  return `${(m / 1000).toFixed(3)} km`;
-}
-
-function formatArea(m2) {
-  if (m2 < 1_000_000) return `${m2.toFixed(1)} m²`;
-  return `${(m2 / 1_000_000).toFixed(4)} km²`;
-}
-
-// Haversine distance (meters)
+// =========================
+// CÁLCULOS GIS
+// =========================
 function haversineMeters(a, b) {
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
@@ -45,7 +37,7 @@ function haversineMeters(a, b) {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-function polygonAreaMeters2(latlngs) {
+function polygonAreaHa(latlngs) {
   if (latlngs.length < 3) return 0;
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
@@ -58,19 +50,20 @@ function polygonAreaMeters2(latlngs) {
       (toRad(p2.lng) - toRad(p1.lng)) *
       (2 + Math.sin(toRad(p1.lat)) + Math.sin(toRad(p2.lat)));
   }
-  return Math.abs((sum * R * R) / 2);
+  const m2 = Math.abs((sum * R * R) / 2);
+  return m2 / 10000; // hectáreas
 }
 
 export default function App() {
   const mapRef = useRef(null);
-  const measureLayerRef = useRef(null);
-  const tempLineRef = useRef(null);
-  const tempMarkersRef = useRef([]);
+  const fgRef = useRef(null);
+  const tempLayerRef = useRef(null);
+  const pointsRef = useRef([]);
   const modeRef = useRef("none");
 
-  const [rows, setRows] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [measureMode, setMeasureMode] = useState("none");
+  const [rows, setRows] = useState([]);
+  const [mode, setMode] = useState("none");
 
   useEffect(() => {
     if (mapRef.current) return;
@@ -89,100 +82,87 @@ export default function App() {
     ).addTo(map);
 
     const fg = L.featureGroup().addTo(map);
-    measureLayerRef.current = fg;
-    map.doubleClickZoom.disable();
-
-    const clearTemp = () => {
-      if (tempLineRef.current) fg.removeLayer(tempLineRef.current);
-      tempMarkersRef.current.forEach((m) => fg.removeLayer(m));
-      tempLineRef.current = null;
-      tempMarkersRef.current = [];
-    };
-
-    const finishMeasure = () => {
-      const points = tempMarkersRef.current.map((m) => m.getLatLng());
-      if (!points.length) return;
-
-      let labelText = "";
-      let labelPos = points[points.length - 1];
-
-      if (modeRef.current === "distance") {
-        let d = 0;
-        for (let i = 1; i < points.length; i++) {
-          d += haversineMeters(points[i - 1], points[i]);
-        }
-        labelText = formatDistance(d);
-      }
-
-      if (modeRef.current === "area" && points.length >= 3) {
-        const a = polygonAreaMeters2(points);
-        labelText = formatArea(a);
-        labelPos = L.polygon(points).getBounds().getCenter();
-      }
-
-      if (labelText) {
-        L.tooltip({
-          permanent: true,
-          direction: "center",
-          className: "measure-label",
-        })
-          .setContent(labelText)
-          .setLatLng(labelPos)
-          .addTo(fg);
-      }
-
-      tempLineRef.current = null;
-      tempMarkersRef.current = [];
-      modeRef.current = "none";
-      setMeasureMode("none");
-    };
+    fgRef.current = fg;
 
     map.on("click", (e) => {
       if (modeRef.current === "none") return;
 
-      const fg = measureLayerRef.current;
-      const marker = L.circleMarker(e.latlng, { radius: 5 }).addTo(fg);
-      tempMarkersRef.current.push(marker);
+      const latlng = e.latlng;
+      const fg = fgRef.current;
+      pointsRef.current.push(latlng);
 
-      const pts = tempMarkersRef.current.map((m) => m.getLatLng());
+      // DISTANCIA → solo 2 puntos
+      if (modeRef.current === "distance") {
+        if (pointsRef.current.length === 2) {
+          const [a, b] = pointsRef.current;
+          const d = haversineMeters(a, b);
 
-      if (!tempLineRef.current) {
-        tempLineRef.current =
-          modeRef.current === "distance"
-            ? L.polyline(pts, { weight: 3 }).addTo(fg)
-            : L.polygon(pts, { fillOpacity: 0.15 }).addTo(fg);
-      } else {
-        tempLineRef.current.setLatLngs(pts);
+          const line = L.polyline([a, b], { weight: 3 }).addTo(fg);
+          L.tooltip({ permanent: true, direction: "center" })
+            .setContent(`${d.toFixed(1)} m`)
+            .setLatLng(b)
+            .addTo(fg);
+
+          pointsRef.current = [];
+          modeRef.current = "none";
+          setMode("none");
+        }
+        return;
       }
-    });
 
-    map.on("dblclick", () => {
-      if (modeRef.current === "none") return;
-      finishMeasure();
+      // ÁREA
+      if (!tempLayerRef.current) {
+        tempLayerRef.current = L.polygon([latlng], {
+          fillOpacity: 0.15,
+        }).addTo(fg);
+      } else {
+        const pts = [...pointsRef.current];
+        tempLayerRef.current.setLatLngs(pts);
+
+        // Cerrar polígono al clicar cerca del primer punto
+        if (pts.length >= 3 && latlng.distanceTo(pts[0]) < 15) {
+          const ha = polygonAreaHa(pts);
+          const center = L.polygon(pts).getBounds().getCenter();
+
+          L.tooltip({ permanent: true, direction: "center" })
+            .setContent(`${ha.toFixed(2)} ha`)
+            .setLatLng(center)
+            .addTo(fg);
+
+          tempLayerRef.current = null;
+          pointsRef.current = [];
+          modeRef.current = "none";
+          setMode("none");
+        }
+      }
     });
   }, []);
 
   useEffect(() => {
     if (!mapRef.current) return;
-    setTimeout(() => mapRef.current.invalidateSize(), 320);
+    setTimeout(() => mapRef.current.invalidateSize(), 300);
   }, [sidebarOpen]);
 
   const startDistance = () => {
+    pointsRef.current = [];
+    tempLayerRef.current = null;
     modeRef.current = "distance";
-    setMeasureMode("distance");
+    setMode("distance");
   };
 
   const startArea = () => {
+    pointsRef.current = [];
+    tempLayerRef.current = null;
     modeRef.current = "area";
-    setMeasureMode("area");
+    setMode("area");
   };
 
   const clearAll = () => {
-    measureLayerRef.current?.clearLayers();
-    tempLineRef.current = null;
-    tempMarkersRef.current = [];
+    fgRef.current?.clearLayers();
+    pointsRef.current = [];
+    tempLayerRef.current = null;
     modeRef.current = "none";
-    setMeasureMode("none");
+    setMode("none");
   };
 
   return (
@@ -191,36 +171,31 @@ export default function App() {
       <div
         style={{
           width: sidebarOpen ? 340 : 44,
-          transition: "width 0.3s ease",
           background: "#1f2933",
           color: "white",
           padding: sidebarOpen ? 20 : 8,
-          boxSizing: "border-box",
+          transition: "width 0.3s",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           {sidebarOpen && <h2 style={{ margin: 0 }}>Datos SIGPAC</h2>}
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             style={{
               marginLeft: "auto",
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              border: "none",
               background: "#334155",
               color: "white",
+              border: "none",
+              borderRadius: 6,
+              width: 28,
+              height: 28,
             }}
           >
             {sidebarOpen ? "◀" : "▶"}
           </button>
         </div>
 
-        {sidebarOpen && (
-          <div style={{ marginTop: 16 }}>
-            <CsvUpload onData={setRows} />
-          </div>
-        )}
+        {sidebarOpen && <CsvUpload onData={setRows} />}
       </div>
 
       {/* MAPA + TOOLBAR */}
@@ -240,7 +215,7 @@ export default function App() {
             onClick={startDistance}
             style={{
               ...toolBtnStyle,
-              background: measureMode === "distance" ? "#e2e8f0" : "white",
+              background: mode === "distance" ? "#e2e8f0" : "white",
             }}
           >
             <img src="/icons/rule.png" alt="Regla" width={22} />
@@ -250,7 +225,7 @@ export default function App() {
             onClick={startArea}
             style={{
               ...toolBtnStyle,
-              background: measureMode === "area" ? "#e2e8f0" : "white",
+              background: mode === "area" ? "#e2e8f0" : "white",
             }}
           >
             <img src="/icons/polygon.png" alt="Área" width={22} />
