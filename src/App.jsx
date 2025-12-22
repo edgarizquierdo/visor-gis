@@ -12,7 +12,7 @@ export default function App() {
     if (mapRef.current) return;
 
     const map = L.map("map", {
-      zoomControl: false, // ⛔ quitamos zoom por defecto
+      zoomControl: false,
     }).setView([41.5, 1.5], 8);
 
     mapRef.current = map;
@@ -21,31 +21,37 @@ export default function App() {
       attribution: "© OpenStreetMap",
     }).addTo(map);
 
-    // ✅ Zoom a la derecha → no se solapa con hamburguesa
     L.control.zoom({ position: "topright" }).addTo(map);
   }, []);
 
+  // 🔹 cada vez que se abre/cierra el menú → recalculamos el mapa
+  useEffect(() => {
+    if (!mapRef.current) return;
+    setTimeout(() => {
+      mapRef.current.invalidateSize();
+    }, 300); // espera a que termine la animación
+  }, [sidebarOpen]);
+
   return (
-    <div style={{ width: "100vw", height: "100vh", display: "flex" }}>
-      {/* SIDEBAR */}
+    <>
+      {/* SIDEBAR (overlay, no ocupa layout) */}
       <div
         style={{
-          width: sidebarOpen ? 300 : 0,
-          transition: "width 0.3s ease",
+          position: "absolute",
+          top: 0,
+          left: sidebarOpen ? 0 : -320,
+          width: 300,
+          height: "100vh",
           background: "#1f2933",
           color: "white",
-          overflow: "hidden",
-          padding: sidebarOpen ? 16 : 0,
-          boxShadow: sidebarOpen
-            ? "2px 0 6px rgba(0,0,0,0.3)"
-            : "none",
+          padding: 16,
+          transition: "left 0.3s ease",
+          zIndex: 2500,
+          boxShadow: "2px 0 8px rgba(0,0,0,0.3)",
         }}
       >
-        <h3 style={{ marginTop: 0, marginBottom: 12 }}>
-          📂 Datos SIGPAC
-        </h3>
+        <h3 style={{ marginTop: 0 }}>📂 Datos SIGPAC</h3>
 
-        {/* CSV DENTRO DEL MENÚ */}
         <CsvUpload onData={setRows} />
 
         {rows.length > 0 && (
@@ -55,31 +61,35 @@ export default function App() {
         )}
       </div>
 
-      {/* MAPA */}
-      <div style={{ flex: 1, position: "relative" }}>
-        {/* BOTÓN HAMBURGUESA */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            zIndex: 3000,
-            background: "white",
-            border: "none",
-            borderRadius: 6,
-            padding: "8px 12px",
-            cursor: "pointer",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-            fontSize: 18,
-          }}
-          title="Abrir / cerrar menú"
-        >
-          ☰
-        </button>
+      {/* BOTÓN HAMBURGUESA */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        style={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          zIndex: 3000,
+          background: "white",
+          border: "none",
+          borderRadius: 6,
+          padding: "8px 12px",
+          cursor: "pointer",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+          fontSize: 18,
+        }}
+        title="Abrir / cerrar menú"
+      >
+        ☰
+      </button>
 
-        <div id="map" style={{ width: "100%", height: "100%" }} />
-      </div>
-    </div>
+      {/* MAPA — siempre pantalla completa */}
+      <div
+        id="map"
+        style={{
+          width: "100vw",
+          height: "100vh",
+        }}
+      />
+    </>
   );
 }
