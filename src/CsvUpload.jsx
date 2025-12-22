@@ -65,17 +65,18 @@ export default function CsvUpload({ onData }) {
 
       {/* DESCRIPCIÓN */}
       <p
-        style={{
-          marginTop: 12,
-          marginBottom: 6,
-          fontSize: 12,
-          lineHeight: 1.4,
-          color: "#374151",
-        }}
-      >
-        * El archivo debe tener las columnas{" "}
-        <strong>estrictamente iguales</strong> que el modelo siguiente.
-      </p>
+  style={{
+    marginTop: 12,
+    marginBottom: 6,
+    fontSize: 12,
+    lineHeight: 1.4,
+    color: "#ffffff",      // 👈 texto en blanco
+    opacity: 0.9,          // 👈 un poco más suave
+  }}
+>
+  * El archivo debe tener las columnas{" "}
+  <strong>estrictamente iguales</strong> que el modelo siguiente.
+</p>
 
       {/* DESCARGA PLANTILLA */}
       <a
