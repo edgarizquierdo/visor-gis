@@ -13,7 +13,7 @@
   "react-dom": "^18.2.0",
   "leaflet": "^1.9.4",
   "leaflet-draw": "^1.0.4",
-  "leaflet.polylinemeasure": "^1.1.0"
+  "leaflet.polylinemeasure": "^1.0.0"
 },
   "devDependencies": {
     "vite": "^5.0.0",
