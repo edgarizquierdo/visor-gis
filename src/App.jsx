@@ -12,7 +12,6 @@ export default function App() {
   useEffect(() => {
     if (mapRef.current) return;
 
-    // Crear mapa
     const map = L.map("map").setView([41.5, 1.5], 8);
     mapRef.current = map;
 
@@ -33,14 +32,14 @@ export default function App() {
     ).addTo(map);
 
     /* =================================================
-       HERRAMIENTAS DE MEDICIÓN (FIX DEFINITIVO VITE)
+       HERRAMIENTAS DE MEDICIÓN (FIX REAL VITE)
        ================================================= */
 
-    // Exponer Leaflet globalmente ANTES de cargar leaflet-draw
+    // Exponer Leaflet globalmente
     window.L = L;
 
-    // Cargar leaflet-draw dinámicamente
-    import("leaflet-draw").then(() => {
+    // 🔧 Cargar el plugin REAL
+    import("leaflet-draw/dist/leaflet.draw.js").then(() => {
       const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);
 
@@ -76,7 +75,6 @@ export default function App() {
     });
   }, []);
 
-  // Reajustar mapa al plegar sidebar
   useEffect(() => {
     if (!mapRef.current) return;
     setTimeout(() => mapRef.current.invalidateSize(), 320);
@@ -96,7 +94,6 @@ export default function App() {
           overflow: "hidden",
         }}
       >
-        {/* HEADER */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {sidebarOpen && (
             <h2 style={{ margin: 0, fontSize: 22 }}>Datos SIGPAC</h2>
@@ -104,7 +101,6 @@ export default function App() {
 
           <button
             onClick={() => setSidebarOpen((v) => !v)}
-            title={sidebarOpen ? "Plegar menú" : "Desplegar menú"}
             style={{
               marginLeft: "auto",
               width: 28,
@@ -115,17 +111,12 @@ export default function App() {
               background: "#334155",
               color: "white",
               fontSize: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
             }}
           >
             {sidebarOpen ? "◀" : "▶"}
           </button>
         </div>
 
-        {/* CONTENIDO */}
         {sidebarOpen && (
           <div style={{ marginTop: 16 }}>
             <div
@@ -138,26 +129,6 @@ export default function App() {
               }}
             >
               <h3 style={{ margin: 0, marginBottom: 8 }}>Subir CSV</h3>
-              <p style={{ fontSize: 13, margin: 0, marginBottom: 12 }}>
-                Archivo con códigos SIGPAC por columnas
-              </p>
-
               <CsvUpload onData={setRows} />
-
-              {rows.length > 0 && (
-                <p style={{ marginTop: 10, fontSize: 12 }}>
-                  Filas cargadas: <strong>{rows.length}</strong>
-                </p>
-              )}
             </div>
           </div>
-        )}
-      </div>
-
-      {/* MAPA */}
-      <div style={{ flex: 1 }}>
-        <div id="map" style={{ width: "100%", height: "100%" }} />
-      </div>
-    </div>
-  );
-}
