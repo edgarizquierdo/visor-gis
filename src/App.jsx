@@ -40,6 +40,8 @@ export default function App() {
 
     // 🔧 Cargar el plugin REAL
     import("leaflet-draw/dist/leaflet.draw.js").then(() => {
+      console.log("L.Control.Draw =", L.Control?.Draw);
+
       const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);
 
