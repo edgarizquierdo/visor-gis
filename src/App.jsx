@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
-
-// 🔧 NECESARIO PARA leaflet-draw en Vite
-window.L = L;
-
 import "leaflet/dist/leaflet.css";
-import CsvUpload from "./CsvUpload";
 import "leaflet-draw/dist/leaflet.draw.css";
-import "leaflet-draw";
+import CsvUpload from "./CsvUpload";
 
 export default function App() {
   const mapRef = useRef(null);
@@ -17,6 +12,7 @@ export default function App() {
   useEffect(() => {
     if (mapRef.current) return;
 
+    // Crear mapa
     const map = L.map("map").setView([41.5, 1.5], 8);
     mapRef.current = map;
 
@@ -36,47 +32,51 @@ export default function App() {
       { attribution: "© Esri — Boundaries & Places" }
     ).addTo(map);
 
-    /* =========================
-       HERRAMIENTAS DE MEDICIÓN  ✅ NUEVO
-       ========================= */
+    /* =================================================
+       HERRAMIENTAS DE MEDICIÓN (FIX DEFINITIVO VITE)
+       ================================================= */
 
-    // Grupo donde se guardan las mediciones
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
+    // Exponer Leaflet globalmente ANTES de cargar leaflet-draw
+    window.L = L;
 
-    // Control de dibujo
-    const drawControl = new L.Control.Draw({
-      position: "topright",
-      draw: {
-        polyline: {
-          shapeOptions: { color: "#f97316", weight: 3 },
-          metric: true,
+    // Cargar leaflet-draw dinámicamente
+    import("leaflet-draw").then(() => {
+      const drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+
+      const drawControl = new L.Control.Draw({
+        position: "topright",
+        draw: {
+          polyline: {
+            shapeOptions: { color: "#f97316", weight: 3 },
+            metric: true,
+          },
+          polygon: {
+            allowIntersection: false,
+            showArea: true,
+            shapeOptions: { color: "#22c55e" },
+          },
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          marker: false,
         },
-        polygon: {
-          allowIntersection: false,
-          showArea: true,
-          shapeOptions: { color: "#22c55e" },
+        edit: {
+          featureGroup: drawnItems,
+          edit: true,
+          remove: true,
         },
-        rectangle: false,
-        circle: false,
-        circlemarker: false,
-        marker: false,
-      },
-      edit: {
-        featureGroup: drawnItems,
-        edit: true,
-        remove: true,
-      },
-    });
+      });
 
-    map.addControl(drawControl);
+      map.addControl(drawControl);
 
-    // Al crear una medición
-    map.on(L.Draw.Event.CREATED, (e) => {
-      drawnItems.addLayer(e.layer);
+      map.on(L.Draw.Event.CREATED, (e) => {
+        drawnItems.addLayer(e.layer);
+      });
     });
   }, []);
 
+  // Reajustar mapa al plegar sidebar
   useEffect(() => {
     if (!mapRef.current) return;
     setTimeout(() => mapRef.current.invalidateSize(), 320);
