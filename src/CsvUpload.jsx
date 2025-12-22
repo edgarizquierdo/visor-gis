@@ -16,7 +16,7 @@ export default function CsvUpload({ onData }) {
 
       if (lines.length === 0) return;
 
-      // Tu CSV parece venir con ; como separador
+      // CSV con ; como separador
       const headers = lines[0].split(";").map((h) => h.trim());
 
       const rows = lines.slice(1).map((line) => {
@@ -35,30 +35,61 @@ export default function CsvUpload({ onData }) {
   };
 
   return (
-    <label
-      style={{
-        display: "block",
-        width: "100%",
-        boxSizing: "border-box",
-        background: "#3563E9",
-        color: "white",
-        padding: "14px 16px",
-        borderRadius: 10,
-        cursor: "pointer",
-        textAlign: "center",
-        fontWeight: 700,
-        fontSize: 16,
-        boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
-        userSelect: "none",
-      }}
-    >
-      📁 Seleccionar archivo CSV
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFile}
-        style={{ display: "none" }}
-      />
-    </label>
+    <div>
+      {/* BOTÓN CSV */}
+      <label
+        style={{
+          display: "block",
+          width: "100%",
+          boxSizing: "border-box",
+          background: "#3563E9",
+          color: "white",
+          padding: "10px 14px", // 👈 más pequeño
+          borderRadius: 10,
+          cursor: "pointer",
+          textAlign: "center",
+          fontWeight: 700,
+          fontSize: 14, // 👈 más pequeño
+          boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
+          userSelect: "none",
+        }}
+      >
+        📁 Seleccionar archivo CSV
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleFile}
+          style={{ display: "none" }}
+        />
+      </label>
+
+      {/* DESCRIPCIÓN */}
+      <p
+        style={{
+          marginTop: 12,
+          marginBottom: 6,
+          fontSize: 12,
+          lineHeight: 1.4,
+          color: "#374151",
+        }}
+      >
+        * El archivo debe tener las columnas{" "}
+        <strong>estrictamente iguales</strong> que el modelo siguiente.
+      </p>
+
+      {/* DESCARGA PLANTILLA */}
+      <a
+        href="/templates/plantilla_sigpac.csv"
+        download
+        style={{
+          fontSize: 12,
+          color: "#2563eb",
+          textDecoration: "underline",
+          cursor: "pointer",
+        }}
+      >
+        Descargar plantilla CSV de ejemplo
+      </a>
+    </div>
   );
 }
