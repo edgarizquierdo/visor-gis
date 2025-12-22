@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import CsvUpload from "./CsvUpload";
+import "leaflet-draw/dist/leaflet.draw.css";
+import "leaflet-draw";
 
 export default function App() {
   const mapRef = useRef(null);
@@ -19,9 +21,7 @@ export default function App() {
        ========================= */
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {
-        attribution: "Tiles © Esri",
-      }
+      { attribution: "Tiles © Esri" }
     ).addTo(map);
 
     /* =========================
@@ -29,10 +29,48 @@ export default function App() {
        ========================= */
     L.tileLayer(
       "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-      {
-        attribution: "© Esri — Boundaries & Places",
-      }
+      { attribution: "© Esri — Boundaries & Places" }
     ).addTo(map);
+
+    /* =========================
+       HERRAMIENTAS DE MEDICIÓN  ✅ NUEVO
+       ========================= */
+
+    // Grupo donde se guardan las mediciones
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    // Control de dibujo
+    const drawControl = new L.Control.Draw({
+      position: "topright",
+      draw: {
+        polyline: {
+          shapeOptions: { color: "#f97316", weight: 3 },
+          metric: true,
+        },
+        polygon: {
+          allowIntersection: false,
+          showArea: true,
+          shapeOptions: { color: "#22c55e" },
+        },
+        rectangle: false,
+        circle: false,
+        circlemarker: false,
+        marker: false,
+      },
+      edit: {
+        featureGroup: drawnItems,
+        edit: true,
+        remove: true,
+      },
+    });
+
+    map.addControl(drawControl);
+
+    // Al crear una medición
+    map.on(L.Draw.Event.CREATED, (e) => {
+      drawnItems.addLayer(e.layer);
+    });
   }, []);
 
   useEffect(() => {
@@ -119,4 +157,3 @@ export default function App() {
     </div>
   );
 }
-
