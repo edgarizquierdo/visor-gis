@@ -19,19 +19,25 @@ export default function App() {
   }, []);
 
   return (
-  <div
-    style={{
-      position: "fixed",
-      top: 20,
-      left: 20,
-      zIndex: 999999,
-      background: "red",
-      color: "white",
-      padding: 20,
-      fontSize: 20,
-    }}
-  >
-    SOY EL CSV UPLOAD
-  </div>
-);
+    <div style={{ position: "relative", width: "100%", height: "100vh" }}>
+      {/* CSV UPLOAD (SIEMPRE VISIBLE) */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          zIndex: 2000,
+          background: "white",
+          padding: 10,
+          borderRadius: 6,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+        }}
+      >
+        <CsvUpload onData={setRows} />
+      </div>
 
+      {/* MAPA */}
+      <div id="map" style={{ height: "100%", width: "100%" }} />
+    </div>
+  );
+}
