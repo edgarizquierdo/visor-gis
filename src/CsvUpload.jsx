@@ -44,12 +44,12 @@ export default function CsvUpload({ onData }) {
           boxSizing: "border-box",
           background: "#3563E9",
           color: "white",
-          padding: "10px 14px", // 👈 más pequeño
+          padding: "10px 14px", // más pequeño
           borderRadius: 10,
           cursor: "pointer",
           textAlign: "center",
           fontWeight: 700,
-          fontSize: 14, // 👈 más pequeño
+          fontSize: 14,
           boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
           userSelect: "none",
         }}
@@ -63,20 +63,20 @@ export default function CsvUpload({ onData }) {
         />
       </label>
 
-      {/* DESCRIPCIÓN */}
+      {/* TEXTO DESCRIPTIVO */}
       <p
-  style={{
-    marginTop: 12,
-    marginBottom: 6,
-    fontSize: 12,
-    lineHeight: 1.4,
-    color: "#ffffff",      // 👈 texto en blanco
-    opacity: 0.9,          // 👈 un poco más suave
-  }}
->
-  * El archivo debe tener las columnas{" "}
-  <strong>estrictamente iguales</strong> que el modelo siguiente.
-</p>
+        style={{
+          marginTop: 12,
+          marginBottom: 6,
+          fontSize: 12,
+          lineHeight: 1.4,
+          color: "#ffffff",
+          opacity: 0.9,
+        }}
+      >
+        * El archivo debe tener las columnas{" "}
+        <strong>estrictamente iguales</strong> que el modelo siguiente.
+      </p>
 
       {/* DESCARGA PLANTILLA */}
       <a
@@ -84,7 +84,7 @@ export default function CsvUpload({ onData }) {
         download
         style={{
           fontSize: 12,
-          color: "#2563eb",
+          color: "#93c5fd",
           textDecoration: "underline",
           cursor: "pointer",
         }}
