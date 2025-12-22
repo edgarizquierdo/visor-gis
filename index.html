@@ -5,12 +5,10 @@
     <title>Visor GIS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ✅ FIX MÍNIMO: forzar visibilidad de Leaflet.Draw -->
+    <!-- Ocultar control nativo de PolylineMeasure (usamos toolbar propio) -->
     <style>
-      .leaflet-draw-toolbar {
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+      .leaflet-control-polylinemeasure {
+        display: none !important;
       }
     </style>
   </head>
