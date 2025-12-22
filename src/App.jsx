@@ -14,10 +14,11 @@ export default function App() {
     if (mapRef.current) return;
 
     const map = L.map("map", {
-      zoomControl: true,
-    }).setView([41.5, 1.5], 8);
+  zoomControl: false,
+}).setView([41.5, 1.5], 8);
 
-    mapRef.current = map;
+L.control.zoom({ position: "topright" }).addTo(map);
+
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap",
@@ -88,13 +89,13 @@ export default function App() {
   onClick={() => setSidebarOpen(!sidebarOpen)}
   style={{
     position: "absolute",
-    top: 20,
-    right: 20,
+    top: 10,
+    left: 10,
     zIndex: 2000,
-    background: "#ffffff",
+    background: "white",
     border: "none",
-    borderRadius: 8,
-    padding: "8px 12px",
+    borderRadius: 6,
+    padding: "6px 10px",
     cursor: "pointer",
     boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
     fontSize: 18,
