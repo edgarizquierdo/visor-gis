@@ -19,7 +19,6 @@ export default function CsvUpload({ onData }) {
       .find(Boolean);
 
     if (!firstLine) return [];
-
     return firstLine.split(";").map((h) => h.trim());
   };
 
@@ -30,15 +29,11 @@ export default function CsvUpload({ onData }) {
     if (!file) return;
 
     try {
-      // 1️⃣ Leer cabeceras del CSV subido
       const csvHeaders = await readCsvHeaders(file);
-
-      // 2️⃣ Leer cabeceras de la plantilla oficial
       const templateHeaders = await readCsvHeaders(
         "/templates/plantilla_sigpac.csv"
       );
 
-      // 3️⃣ Comparar EXACTO
       const sameLength = csvHeaders.length === templateHeaders.length;
       const sameOrder = csvHeaders.every(
         (h, i) => h === templateHeaders[i]
@@ -50,7 +45,6 @@ export default function CsvUpload({ onData }) {
         );
       }
 
-      // 4️⃣ Parsear CSV completo
       const text = await file.text();
       const lines = text
         .split(/\r?\n/)
@@ -79,17 +73,21 @@ export default function CsvUpload({ onData }) {
       {/* BOTÓN CSV */}
       <label
         style={{
-          display: "block",
-          width: "100%",
+          display: "inline-flex",        // 👈 ya no ocupa todo
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",                 // se adapta al sidebar
+          maxWidth: 260,                 // 👈 límite visual
+          margin: "0 auto",              // centrado
           background: "#3563E9",
           color: "white",
-          padding: "10px 14px",
+          padding: "8px 14px",           // 👈 más bajo
           borderRadius: 10,
           cursor: "pointer",
           textAlign: "center",
-          fontWeight: 700,
-          fontSize: 14,
-          boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
+          fontWeight: 600,
+          fontSize: 13,                  // 👈 más pequeño
+          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
           userSelect: "none",
         }}
       >
@@ -105,7 +103,7 @@ export default function CsvUpload({ onData }) {
       {/* TEXTO DESCRIPTIVO */}
       <p
         style={{
-          marginTop: 12,
+          marginTop: 14,
           marginBottom: 6,
           fontSize: 12,
           lineHeight: 1.4,
