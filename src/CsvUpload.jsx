@@ -28,16 +28,42 @@ export default function CsvUpload({ onData }) {
   };
 
   return (
-    <input
-      type="file"
-      accept=".csv"
-      onChange={handleFile}
+    <div
       style={{
-        width: "100%",
-        padding: "10px",
-        borderRadius: 6,
-        border: "1px solid #ccc",
+        background: "white",
+        color: "#111",
+        borderRadius: 12,
+        padding: 20,
+        maxWidth: 300,
       }}
-    />
+    >
+      <h3 style={{ marginTop: 0 }}>Subir CSV</h3>
+      <p style={{ marginTop: 4, marginBottom: 16, fontSize: 14 }}>
+        Archivo con códigos SIGPAC por columnas
+      </p>
+
+      {/* BOTÓN ESTILO FOTO B */}
+      <label
+        style={{
+          display: "block",
+          background: "#3b66e3",
+          color: "white",
+          padding: "14px 18px",
+          borderRadius: 10,
+          textAlign: "center",
+          cursor: "pointer",
+          fontSize: 16,
+          fontWeight: 500,
+        }}
+      >
+        📁 Seleccionar archivo CSV
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleFile}
+          style={{ display: "none" }}
+        />
+      </label>
+    </div>
   );
 }
