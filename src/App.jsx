@@ -8,7 +8,6 @@ export default function App() {
   const [rows, setRows] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Inicializar mapa
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -20,12 +19,9 @@ export default function App() {
     }).addTo(map);
   }, []);
 
-  // Reajustar mapa cuando se pliega / despliega el menú
   useEffect(() => {
     if (!mapRef.current) return;
-    setTimeout(() => {
-      mapRef.current.invalidateSize();
-    }, 310);
+    setTimeout(() => mapRef.current.invalidateSize(), 320);
   }, [sidebarOpen]);
 
   return (
@@ -33,15 +29,13 @@ export default function App() {
       {/* SIDEBAR */}
       <div
         style={{
-          width: sidebarOpen ? 340 : 44,
+          width: sidebarOpen ? 340 : 44, // franja visible al plegar
           transition: "width 0.3s ease",
           background: "#1f2933",
           color: "white",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
           padding: sidebarOpen ? 20 : 8,
           boxSizing: "border-box",
+          overflow: "hidden",
         }}
       >
         {/* HEADER */}
@@ -50,9 +44,9 @@ export default function App() {
             <h2 style={{ margin: 0, fontSize: 22 }}>Datos SIGPAC</h2>
           )}
 
-          {/* FLECHA INTERNA */}
+          {/* FLECHA DENTRO DEL MENÚ */}
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={() => setSidebarOpen((v) => !v)}
             title={sidebarOpen ? "Plegar menú" : "Desplegar menú"}
             style={{
               marginLeft: "auto",
@@ -74,19 +68,20 @@ export default function App() {
           </button>
         </div>
 
-        {/* CONTENIDO */}
+        {/* CONTENIDO ARRIBA (justo debajo del título) */}
         {sidebarOpen && (
-          <div style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 16 }}>
             <div
               style={{
                 background: "white",
                 color: "#111",
-                borderRadius: 10,
+                borderRadius: 12,
                 padding: 16,
+                boxShadow: "0 10px 24px rgba(0,0,0,0.18)",
               }}
             >
-              <h3 style={{ marginTop: 0 }}>Subir CSV</h3>
-              <p style={{ fontSize: 13, marginBottom: 12 }}>
+              <h3 style={{ margin: 0, marginBottom: 8 }}>Subir CSV</h3>
+              <p style={{ fontSize: 13, margin: 0, marginBottom: 12 }}>
                 Archivo con códigos SIGPAC por columnas
               </p>
 
@@ -100,9 +95,6 @@ export default function App() {
             </div>
           </div>
         )}
-
-        {/* ESPACIADOR INFERIOR */}
-        <div />
       </div>
 
       {/* MAPA */}
