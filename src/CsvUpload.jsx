@@ -1,22 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function CsvUpload({ onData }) {
-  const handleFile = (e) => {
+  const [error, setError] = useState(null);
+
+  const readCsvHeaders = async (fileOrUrl) => {
+    let text = "";
+
+    if (typeof fileOrUrl === "string") {
+      const res = await fetch(fileOrUrl);
+      text = await res.text();
+    } else {
+      text = await fileOrUrl.text();
+    }
+
+    const firstLine = text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .find(Boolean);
+
+    if (!firstLine) return [];
+
+    return firstLine.split(";").map((h) => h.trim());
+  };
+
+  const handleFile = async (e) => {
+    setError(null);
+
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
+    try {
+      // 1️⃣ Leer cabeceras del CSV subido
+      const csvHeaders = await readCsvHeaders(file);
 
-    reader.onload = () => {
-      const text = String(reader.result || "");
+      // 2️⃣ Leer cabeceras de la plantilla oficial
+      const templateHeaders = await readCsvHeaders(
+        "/templates/plantilla_sigpac.csv"
+      );
+
+      // 3️⃣ Comparar EXACTO
+      const sameLength = csvHeaders.length === templateHeaders.length;
+      const sameOrder = csvHeaders.every(
+        (h, i) => h === templateHeaders[i]
+      );
+
+      if (!sameLength || !sameOrder) {
+        throw new Error(
+          "El CSV no coincide con la plantilla oficial. Revisa nombres y orden de columnas."
+        );
+      }
+
+      // 4️⃣ Parsear CSV completo
+      const text = await file.text();
       const lines = text
         .split(/\r?\n/)
         .map((l) => l.trim())
         .filter(Boolean);
 
-      if (lines.length === 0) return;
-
-      // CSV con ; como separador
       const headers = lines[0].split(";").map((h) => h.trim());
 
       const rows = lines.slice(1).map((line) => {
@@ -29,9 +69,9 @@ export default function CsvUpload({ onData }) {
       });
 
       onData?.(rows);
-    };
-
-    reader.readAsText(file);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -41,10 +81,9 @@ export default function CsvUpload({ onData }) {
         style={{
           display: "block",
           width: "100%",
-          boxSizing: "border-box",
           background: "#3563E9",
           color: "white",
-          padding: "10px 14px", // más pequeño
+          padding: "10px 14px",
           borderRadius: 10,
           cursor: "pointer",
           textAlign: "center",
@@ -91,6 +130,22 @@ export default function CsvUpload({ onData }) {
       >
         Descargar plantilla CSV de ejemplo
       </a>
+
+      {/* ERROR */}
+      {error && (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "8px 10px",
+            borderRadius: 8,
+            background: "#7f1d1d",
+            color: "#fecaca",
+            fontSize: 12,
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
     </div>
   );
 }
