@@ -33,41 +33,61 @@ export default function App() {
   }, [sidebarOpen]);
 
   return (
-    <>
-      {/* SIDEBAR (overlay, no ocupa layout) */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: sidebarOpen ? 0 : -320,
-          width: 300,
-          height: "100vh",
-          background: "#1f2933",
-          color: "white",
-          padding: 16,
-          transition: "left 0.3s ease",
-          zIndex: 2500,
-          boxShadow: "2px 0 8px rgba(0,0,0,0.3)",
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>📂 Datos SIGPAC</h3>
+  <>
+    {/* SIDEBAR */}
+    <div
+      style={{
+        position: "absolute",
+        top: 0,
+        left: sidebarOpen ? 0 : -320,
+        width: 300,
+        height: "100vh",
+        background: "#1f2933",
+        color: "white",
+        padding: 16,
+        transition: "left 0.3s ease",
+        zIndex: 2500,
+        boxShadow: "2px 0 8px rgba(0,0,0,0.3)",
+      }}
+    >
+      {/* HEADER */}
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            marginRight: 12,
+            background: "white",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 10px",
+            cursor: "pointer",
+            fontSize: 18,
+          }}
+          title="Cerrar menú"
+        >
+          ✕
+        </button>
 
-        <CsvUpload onData={setRows} />
-
-        {rows.length > 0 && (
-          <p style={{ marginTop: 12, fontSize: 13, color: "#d1d5db" }}>
-            Filas cargadas: <strong>{rows.length}</strong>
-          </p>
-        )}
+        <h3 style={{ margin: 0 }}>Datos SIGPAC</h3>
       </div>
 
-      {/* BOTÓN HAMBURGUESA */}
+      <CsvUpload onData={setRows} />
+
+      {rows.length > 0 && (
+        <p style={{ marginTop: 12, fontSize: 13, color: "#d1d5db" }}>
+          Filas cargadas: <strong>{rows.length}</strong>
+        </p>
+      )}
+    </div>
+
+    {/* BOTÓN ABRIR (solo si está cerrado) */}
+    {!sidebarOpen && (
       <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
+        onClick={() => setSidebarOpen(true)}
         style={{
           position: "absolute",
-          top: 12,
-          left: 12,
+          top: 20,
+          left: 20,
           zIndex: 3000,
           background: "white",
           border: "none",
@@ -77,19 +97,19 @@ export default function App() {
           boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
           fontSize: 18,
         }}
-        title="Abrir / cerrar menú"
+        title="Abrir menú"
       >
         ☰
       </button>
+    )}
 
-      {/* MAPA — siempre pantalla completa */}
-      <div
-        id="map"
-        style={{
-          width: "100vw",
-          height: "100vh",
-        }}
-      />
-    </>
-  );
-}
+    {/* MAPA */}
+    <div
+      id="map"
+      style={{
+        width: "100vw",
+        height: "100vh",
+      }}
+    />
+  </>
+);
