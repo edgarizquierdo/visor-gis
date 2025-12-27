@@ -202,49 +202,59 @@ export default function CsvUpload({ onData, onMeta }) {
             })}
           </div>
 
+          {/* 👇 CONTENEDOR CON SCROLL HORIZONTAL */}
           {previewRows.length > 0 && (
-            <table
+            <div
               style={{
                 marginTop: 10,
+                overflowX: "auto",
                 width: "100%",
-                fontSize: 11,
-                borderCollapse: "collapse",
               }}
             >
-              <thead>
-                <tr>
-                  {headers.map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        textAlign: "left",
-                        padding: "4px",
-                        borderBottom: "1px solid #475569",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {previewRows.map((row, i) => (
-                  <tr key={i}>
+              <table
+                style={{
+                  minWidth: "600px", // 👈 fuerza scroll si hay muchas columnas
+                  fontSize: 11,
+                  borderCollapse: "collapse",
+                }}
+              >
+                <thead>
+                  <tr>
                     {headers.map((h) => (
-                      <td
+                      <th
                         key={h}
                         style={{
-                          padding: "4px",
-                          color: "#e5e7eb",
+                          textAlign: "left",
+                          padding: "6px 8px",
+                          borderBottom: "1px solid #475569",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {row[h]}
-                      </td>
+                        {h}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {previewRows.map((row, i) => (
+                    <tr key={i}>
+                      {headers.map((h) => (
+                        <td
+                          key={h}
+                          style={{
+                            padding: "6px 8px",
+                            color: "#e5e7eb",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {row[h]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
