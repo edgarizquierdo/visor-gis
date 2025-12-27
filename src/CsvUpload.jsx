@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 
-export default function CsvUpload({ onData }) {
+const SIGPAC_COLUMNS = [
+  "provincia",
+  "municipio",
+  "poligono",
+  "parcela",
+  "recinto",
+];
+
+export default function CsvUpload({ onData, onMeta }) {
   const [error, setError] = useState(null);
+  const [headers, setHeaders] = useState([]);
+  const [previewRows, setPreviewRows] = useState([]);
+  const [ok, setOk] = useState(false);
 
   const readCsvHeaders = async (fileOrUrl) => {
     let text = "";
@@ -24,6 +35,7 @@ export default function CsvUpload({ onData }) {
 
   const handleFile = async (e) => {
     setError(null);
+    setOk(false);
 
     const file = e.target.files?.[0];
     if (!file) return;
@@ -51,20 +63,27 @@ export default function CsvUpload({ onData }) {
         .map((l) => l.trim())
         .filter(Boolean);
 
-      const headers = lines[0].split(";").map((h) => h.trim());
+      const parsedHeaders = lines[0].split(";").map((h) => h.trim());
 
       const rows = lines.slice(1).map((line) => {
         const values = line.split(";");
         const obj = {};
-        headers.forEach((h, i) => {
+        parsedHeaders.forEach((h, i) => {
           obj[h] = (values[i] ?? "").trim();
         });
         return obj;
       });
 
+      setHeaders(parsedHeaders);
+      setPreviewRows(rows.slice(0, 3));
+      setOk(true);
+
       onData?.(rows);
+      onMeta?.({ headers: parsedHeaders });
     } catch (err) {
       setError(err.message);
+      setHeaders([]);
+      setPreviewRows([]);
     }
   };
 
@@ -73,22 +92,20 @@ export default function CsvUpload({ onData }) {
       {/* BOTÓN CSV */}
       <label
         style={{
-          display: "inline-flex",        // 👈 ya no ocupa todo
+          display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",                 // se adapta al sidebar
-          maxWidth: 260,                 // 👈 límite visual
-          margin: "0 auto",              // centrado
+          width: "100%",
+          maxWidth: 260,
+          margin: "0 auto",
           background: "#3563E9",
           color: "white",
-          padding: "8px 14px",           // 👈 más bajo
+          padding: "8px 14px",
           borderRadius: 10,
           cursor: "pointer",
-          textAlign: "center",
           fontWeight: 600,
-          fontSize: 13,                  // 👈 más pequeño
+          fontSize: 13,
           boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-          userSelect: "none",
         }}
       >
         📁 Seleccionar archivo CSV
@@ -100,13 +117,28 @@ export default function CsvUpload({ onData }) {
         />
       </label>
 
-      {/* TEXTO DESCRIPTIVO */}
+      {/* ESTADO OK */}
+      {ok && (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "6px 10px",
+            borderRadius: 8,
+            background: "#14532d",
+            color: "#bbf7d0",
+            fontSize: 12,
+          }}
+        >
+          ✔ CSV validado y cargado correctamente
+        </div>
+      )}
+
+      {/* TEXTO */}
       <p
         style={{
-          marginTop: 14,
+          marginTop: 12,
           marginBottom: 6,
           fontSize: 12,
-          lineHeight: 1.4,
           color: "#ffffff",
           opacity: 0.9,
         }}
@@ -115,7 +147,6 @@ export default function CsvUpload({ onData }) {
         <strong>estrictamente iguales</strong> que el modelo siguiente.
       </p>
 
-      {/* DESCARGA PLANTILLA */}
       <a
         href="/templates/plantilla_sigpac.csv"
         download
@@ -123,7 +154,6 @@ export default function CsvUpload({ onData }) {
           fontSize: 12,
           color: "#93c5fd",
           textDecoration: "underline",
-          cursor: "pointer",
         }}
       >
         Descargar plantilla CSV de ejemplo
@@ -134,7 +164,7 @@ export default function CsvUpload({ onData }) {
         <div
           style={{
             marginTop: 10,
-            padding: "8px 10px",
+            padding: "8px",
             borderRadius: 8,
             background: "#7f1d1d",
             color: "#fecaca",
@@ -142,6 +172,80 @@ export default function CsvUpload({ onData }) {
           }}
         >
           ⚠️ {error}
+        </div>
+      )}
+
+      {/* PREVIEW */}
+      {headers.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 12, marginBottom: 6 }}>
+            Columnas detectadas:
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {headers.map((h) => {
+              const isSigpac = SIGPAC_COLUMNS.includes(h.toLowerCase());
+              return (
+                <span
+                  key={h}
+                  style={{
+                    fontSize: 11,
+                    padding: "3px 6px",
+                    borderRadius: 6,
+                    background: isSigpac ? "#16a34a" : "#334155",
+                    color: "white",
+                  }}
+                >
+                  {h}
+                </span>
+              );
+            })}
+          </div>
+
+          {previewRows.length > 0 && (
+            <table
+              style={{
+                marginTop: 10,
+                width: "100%",
+                fontSize: 11,
+                borderCollapse: "collapse",
+              }}
+            >
+              <thead>
+                <tr>
+                  {headers.map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: "left",
+                        padding: "4px",
+                        borderBottom: "1px solid #475569",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewRows.map((row, i) => (
+                  <tr key={i}>
+                    {headers.map((h) => (
+                      <td
+                        key={h}
+                        style={{
+                          padding: "4px",
+                          color: "#e5e7eb",
+                        }}
+                      >
+                        {row[h]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
     </div>
