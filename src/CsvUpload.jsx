@@ -1,144 +1,85 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Papa from "papaparse";
 
-const SIGPAC_TEMPLATE = [
-  "Código provincia",
-  "Código municipio",
-  "Polígono",
-  "Parcela",
+const REQUIRED_COLUMNS = [
+  "codigo provincia",
+  "codigo municipio",
+  "poligono",
+  "parcela",
 ];
 
-export default function CsvUploadSigpac() {
-  const [csvFile, setCsvFile] = useState(null);
-  const [status, setStatus] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+// normaliza headers (clave)
+const normalize = (str) =>
+  str
+    .replace("\ufeff", "") // BOM
+    .trim()
+    .toLowerCase();
 
-  // =========================
-  // VALIDAR CSV
-  // =========================
-  const validateSigpacCSV = (file) => {
-    Papa.parse(file, {
+export default function CsvUpload() {
+  const [file, setFile] = useState(null);
+  const [error, setError] = useState(null);
+  const [valid, setValid] = useState(false);
+
+  const handleFile = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+
+    Papa.parse(f, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const headers = results.meta.fields || [];
+        const headers = results.meta.fields.map(normalize);
 
-        const isValid =
-          headers.length === SIGPAC_TEMPLATE.length &&
-          headers.every((h, i) => h.trim() === SIGPAC_TEMPLATE[i]);
+        const missing = REQUIRED_COLUMNS.filter(
+          (col) => !headers.includes(col)
+        );
 
-        if (!isValid) {
+        if (missing.length > 0) {
           setError(
-            "El CSV no coincide con la plantilla SIGPAC. Revisa nombres y orden de columnas."
+            `Faltan columnas obligatorias: ${missing.join(", ")}`
           );
-          setCsvFile(null);
-          setStatus(null);
-          return;
+          setValid(false);
+        } else {
+          setError(null);
+          setValid(true);
+          setFile(f);
         }
-
-        setCsvFile(file);
-        setError(null);
-        setStatus("CSV cargado correctamente ✅");
+      },
+      error: () => {
+        setError("Error leyendo el CSV");
+        setValid(false);
       },
     });
   };
 
-  // =========================
-  // SUBIR AL BACKEND
-  // =========================
-  const uploadToBackend = async () => {
-    if (!csvFile) return;
+  const sendToBackend = async () => {
+    if (!file) return;
 
-    setLoading(true);
-    setError(null);
+    const formData = new FormData();
+    formData.append("file", file);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", csvFile);
-
-      const res = await fetch("http://127.0.0.1:8000/parcels/sigpac", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Error procesando SIGPAC");
-      }
-
-      const data = await res.json();
-      console.log("SIGPAC GeoJSON:", data);
-
-      setStatus(`Parcelas SIGPAC cargadas (${data.features.length}) ✅`);
-    } catch (err) {
-      setError("Error al procesar SIGPAC en el servidor");
-    } finally {
-      setLoading(false);
-    }
+    await fetch("http://127.0.0.1:8000/parcels/sigpac", {
+      method: "POST",
+      body: formData,
+    });
   };
 
-  // =========================
-  // RENDER
-  // =========================
   return (
-    <div className="bg-slate-800 rounded-xl p-4 text-white">
-      <h2 className="text-xl font-semibold mb-3">Datos SIGPAC</h2>
-
-      {/* BOTÓN CSV */}
-      <label className="block">
-        <input
-          type="file"
-          accept=".csv"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (file) validateSigpacCSV(file);
-          }}
-        />
-        <div className="cursor-pointer bg-blue-600 hover:bg-blue-700 transition text-center py-3 rounded-lg font-medium">
-          📁 Seleccionar archivo CSV
-        </div>
-      </label>
-
-      {/* AYUDA */}
-      <p className="text-sm text-slate-300 mt-2">
-        * El archivo debe tener las columnas exactamente iguales que la
-        plantilla.
-      </p>
-
-      <a
-        href="/plantilla_sigpac.csv"
-        download
-        className="text-blue-400 underline text-sm mt-1 inline-block"
-      >
-        Descargar plantilla CSV
-      </a>
-
-      {/* ESTADOS */}
-      {status && (
-        <div className="mt-4 bg-green-700/30 text-green-300 p-3 rounded">
-          {status}
-        </div>
-      )}
+    <div>
+      <input type="file" accept=".csv" onChange={handleFile} />
 
       {error && (
-        <div className="mt-4 bg-red-800 text-white p-3 rounded">
+        <div style={{ color: "orange", marginTop: 10 }}>
           ⚠️ {error}
         </div>
       )}
 
-      {/* BOTÓN ENVIAR */}
       <button
-        disabled={!csvFile || loading}
-        onClick={uploadToBackend}
-        className={`mt-4 w-full py-3 rounded-lg font-semibold transition
-          ${
-            !csvFile || loading
-              ? "bg-gray-600 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
+        onClick={sendToBackend}
+        disabled={!valid}
+        style={{ marginTop: 10 }}
       >
-        {loading ? "Procesando SIGPAC..." : "Enviar al servidor"}
+        Enviar al servidor
       </button>
     </div>
   );
