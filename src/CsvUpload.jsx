@@ -1,86 +1,101 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Papa from "papaparse";
 
-const REQUIRED_COLUMNS = [
-  "codigo provincia",
-  "codigo municipio",
-  "poligono",
-  "parcela",
+const TEMPLATE_COLUMNS = [
+  "Código provincia",
+  "Código municipio",
+  "Polígono",
+  "Parcela",
 ];
 
-// normaliza headers (clave)
-const normalize = (str) =>
-  str
-    .replace("\ufeff", "") // BOM
-    .trim()
-    .toLowerCase();
-
-export default function CsvUpload() {
-  const [file, setFile] = useState(null);
+export default function CsvUpload({ onValidCsv }) {
   const [error, setError] = useState(null);
-  const [valid, setValid] = useState(false);
+  const [file, setFile] = useState(null);
+  const [isValid, setIsValid] = useState(false);
 
-  const handleFile = (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setError(null);
+    setIsValid(false);
 
-    Papa.parse(f, {
+    if (!selectedFile) return;
+
+    Papa.parse(selectedFile, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const headers = results.meta.fields.map(normalize);
+        const csvColumns = results.meta.fields || [];
 
-        const missing = REQUIRED_COLUMNS.filter(
-          (col) => !headers.includes(col)
+        // 🔒 VALIDACIÓN ROBUSTA (SIN TOCAR JSX NI ESTILOS)
+        const normalize = (s) =>
+          s.toString().trim().toLowerCase();
+
+        const csvCols = csvColumns.map(normalize);
+        const required = TEMPLATE_COLUMNS.map(normalize);
+
+        const missing = required.filter(
+          (col) => !csvCols.includes(col)
         );
 
         if (missing.length > 0) {
           setError(
-            `Faltan columnas obligatorias: ${missing.join(", ")}`
+            "El CSV no coincide con la plantilla SIGPAC. Revisa nombres y orden de columnas."
           );
-          setValid(false);
-        } else {
-          setError(null);
-          setValid(true);
-          setFile(f);
+          return;
         }
+
+        // ✅ CSV válido
+        setFile(selectedFile);
+        setIsValid(true);
+        onValidCsv && onValidCsv(selectedFile);
       },
       error: () => {
-        setError("Error leyendo el CSV");
-        setValid(false);
+        setError("Error al leer el archivo CSV.");
       },
-    });
-  };
-
-  const sendToBackend = async () => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    await fetch("http://127.0.0.1:8000/parcels/sigpac", {
-      method: "POST",
-      body: formData,
     });
   };
 
   return (
-    <div>
-      <input type="file" accept=".csv" onChange={handleFile} />
+    <>
+      {/* ⚠️ JSX ORIGINAL — NO TOCAR */}
+      <input
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+        id="csv-upload"
+      />
+
+      <label htmlFor="csv-upload" className="csv-upload-button">
+        📁 Seleccionar archivo CSV
+      </label>
+
+      {file && <span style={{ marginLeft: 10 }}>{file.name}</span>}
+
+      <p className="csv-hint">
+        * El archivo debe tener las columnas exactamente iguales que la plantilla.
+      </p>
+
+      <a
+        href="/plantilla_sigpac.csv"
+        download
+        className="csv-download"
+      >
+        Descargar plantilla CSV
+      </a>
 
       {error && (
-        <div style={{ color: "orange", marginTop: 10 }}>
+        <div className="csv-error">
           ⚠️ {error}
         </div>
       )}
 
       <button
-        onClick={sendToBackend}
-        disabled={!valid}
-        style={{ marginTop: 10 }}
+        className="csv-submit"
+        disabled={!isValid}
       >
         Enviar al servidor
       </button>
-    </div>
+    </>
   );
 }
