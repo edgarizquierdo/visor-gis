@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const SIGPAC_COLUMNS = [
+const REQUIRED_COLUMNS = [
   "provincia",
   "municipio",
   "poligono",
@@ -8,13 +8,14 @@ const SIGPAC_COLUMNS = [
   "recinto",
 ];
 
-export default function CsvUpload({ onData, onMeta }) {
+export default function CsvUpload({ onData }) {
   const [error, setError] = useState(null);
   const [headers, setHeaders] = useState([]);
   const [previewRows, setPreviewRows] = useState([]);
   const [ok, setOk] = useState(false);
 
-  const readCsvHeaders = async (fileOrUrl) => {
+  // Lee solo la primera línea de un CSV
+  const readHeaders = async (fileOrUrl) => {
     let text = "";
 
     if (typeof fileOrUrl === "string") {
@@ -30,22 +31,29 @@ export default function CsvUpload({ onData, onMeta }) {
       .find(Boolean);
 
     if (!firstLine) return [];
+
     return firstLine.split(";").map((h) => h.trim());
   };
 
   const handleFile = async (e) => {
     setError(null);
     setOk(false);
+    setHeaders([]);
+    setPreviewRows([]);
 
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      const csvHeaders = await readCsvHeaders(file);
-      const templateHeaders = await readCsvHeaders(
+      // 1️⃣ Leer cabeceras del CSV subido
+      const csvHeaders = await readHeaders(file);
+
+      // 2️⃣ Leer cabeceras de la plantilla oficial
+      const templateHeaders = await readHeaders(
         "/templates/plantilla_sigpac.csv"
       );
 
+      // 3️⃣ Validación estricta
       const sameLength = csvHeaders.length === templateHeaders.length;
       const sameOrder = csvHeaders.every(
         (h, i) => h === templateHeaders[i]
@@ -53,10 +61,11 @@ export default function CsvUpload({ onData, onMeta }) {
 
       if (!sameLength || !sameOrder) {
         throw new Error(
-          "El CSV no coincide con la plantilla oficial. Revisa nombres y orden de columnas."
+          "El CSV no coincide con la plantilla SIGPAC. Revisa nombres y orden de columnas."
         );
       }
 
+      // 4️⃣ Parsear filas
       const text = await file.text();
       const lines = text
         .split(/\r?\n/)
@@ -74,16 +83,14 @@ export default function CsvUpload({ onData, onMeta }) {
         return obj;
       });
 
+      // 5️⃣ Estado OK
       setHeaders(parsedHeaders);
       setPreviewRows(rows.slice(0, 3));
       setOk(true);
 
       onData?.(rows);
-      onMeta?.({ headers: parsedHeaders });
     } catch (err) {
       setError(err.message);
-      setHeaders([]);
-      setPreviewRows([]);
     }
   };
 
@@ -97,15 +104,13 @@ export default function CsvUpload({ onData, onMeta }) {
           justifyContent: "center",
           width: "100%",
           maxWidth: 260,
-          margin: "0 auto",
-          background: "#3563E9",
+          background: "#2563eb",
           color: "white",
           padding: "8px 14px",
           borderRadius: 10,
           cursor: "pointer",
           fontWeight: 600,
           fontSize: 13,
-          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
         }}
       >
         📁 Seleccionar archivo CSV
@@ -117,7 +122,7 @@ export default function CsvUpload({ onData, onMeta }) {
         />
       </label>
 
-      {/* ESTADO OK */}
+      {/* OK */}
       {ok && (
         <div
           style={{
@@ -129,34 +134,22 @@ export default function CsvUpload({ onData, onMeta }) {
             fontSize: 12,
           }}
         >
-          ✔ CSV validado y cargado correctamente
+          ✔ CSV validado correctamente
         </div>
       )}
 
       {/* TEXTO */}
-      <p
-        style={{
-          marginTop: 12,
-          marginBottom: 6,
-          fontSize: 12,
-          color: "#ffffff",
-          opacity: 0.9,
-        }}
-      >
+      <p style={{ marginTop: 12, fontSize: 12, color: "#e5e7eb" }}>
         * El archivo debe tener las columnas{" "}
-        <strong>estrictamente iguales</strong> que el modelo siguiente.
+        <strong>exactamente iguales</strong> que la plantilla.
       </p>
 
       <a
         href="/templates/plantilla_sigpac.csv"
         download
-        style={{
-          fontSize: 12,
-          color: "#93c5fd",
-          textDecoration: "underline",
-        }}
+        style={{ fontSize: 12, color: "#93c5fd" }}
       >
-        Descargar plantilla CSV de ejemplo
+        Descargar plantilla CSV
       </a>
 
       {/* ERROR */}
@@ -182,80 +175,69 @@ export default function CsvUpload({ onData, onMeta }) {
             Columnas detectadas:
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {headers.map((h) => {
-              const isSigpac = SIGPAC_COLUMNS.includes(h.toLowerCase());
-              return (
-                <span
-                  key={h}
-                  style={{
-                    fontSize: 11,
-                    padding: "3px 6px",
-                    borderRadius: 6,
-                    background: isSigpac ? "#16a34a" : "#334155",
-                    color: "white",
-                  }}
-                >
-                  {h}
-                </span>
-              );
-            })}
-          </div>
-
-          {/* 👇 CONTENEDOR CON SCROLL HORIZONTAL */}
-          {previewRows.length > 0 && (
-            <div
-              style={{
-                marginTop: 10,
-                overflowX: "auto",
-                width: "100%",
-              }}
-            >
-              <table
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {headers.map((h) => (
+              <span
+                key={h}
                 style={{
-                  minWidth: "600px", // 👈 fuerza scroll si hay muchas columnas
                   fontSize: 11,
-                  borderCollapse: "collapse",
+                  padding: "3px 6px",
+                  borderRadius: 6,
+                  background: REQUIRED_COLUMNS.includes(h)
+                    ? "#16a34a"
+                    : "#334155",
+                  color: "white",
                 }}
               >
-                <thead>
-                  <tr>
+                {h}
+              </span>
+            ))}
+          </div>
+
+          {/* PREVIEW TABLA */}
+          <div style={{ marginTop: 10, overflowX: "auto" }}>
+            <table
+              style={{
+                minWidth: 600,
+                fontSize: 11,
+                borderCollapse: "collapse",
+              }}
+            >
+              <thead>
+                <tr>
+                  {headers.map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "6px 8px",
+                        borderBottom: "1px solid #475569",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewRows.map((row, i) => (
+                  <tr key={i}>
                     {headers.map((h) => (
-                      <th
+                      <td
                         key={h}
                         style={{
-                          textAlign: "left",
                           padding: "6px 8px",
-                          borderBottom: "1px solid #475569",
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {h}
-                      </th>
+                        {row[h]}
+                      </td>
                     ))}
                   </tr>
-                </thead>
-                <tbody>
-                  {previewRows.map((row, i) => (
-                    <tr key={i}>
-                      {headers.map((h) => (
-                        <td
-                          key={h}
-                          style={{
-                            padding: "6px 8px",
-                            color: "#e5e7eb",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {row[h]}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
