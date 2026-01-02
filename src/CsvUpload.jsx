@@ -129,6 +129,8 @@ export default function CsvUpload({ onData }) {
     [previewCols, previewRows]
   );
 
+  console.log("CSVUPLOAD BUENO CARGADO", import.meta.url);
+  
   return (
     <div>
       {/* BOTÓN CSV (más pequeño y centrado) */}
