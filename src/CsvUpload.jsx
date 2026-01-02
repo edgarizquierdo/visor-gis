@@ -44,13 +44,15 @@ export default function CsvUpload({ onData }) {
         (h, i) => h === templateHeaders[i]
       );
 
-      if (!sameLength || !sameOrder) {
-        throw new Error(
+      const isValidTemplate = sameLength && sameOrder;
+
+      if (!isValidTemplate) {
+        setError(
           "El CSV no coincide con la plantilla oficial. Revisa nombres y orden de columnas."
         );
       }
 
-      // 4️⃣ Parsear CSV completo
+      // 4️⃣ Parsear CSV completo (SIEMPRE)
       const text = await file.text();
       const lines = text
         .split(/\r?\n/)
@@ -68,9 +70,12 @@ export default function CsvUpload({ onData }) {
         return obj;
       });
 
-      onData?.(rows);
+      // 5️⃣ Solo enviar datos si la plantilla es válida
+      if (isValidTemplate) {
+        onData?.(rows);
+      }
     } catch (err) {
-      setError(err.message);
+      setError("Error al leer el archivo CSV.");
     }
   };
 
