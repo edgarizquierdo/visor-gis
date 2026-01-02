@@ -1,101 +1,151 @@
-import { useState } from "react";
-import Papa from "papaparse";
+import React, { useState } from "react";
 
-const TEMPLATE_COLUMNS = [
-  "Código provincia",
-  "Código municipio",
-  "Polígono",
-  "Parcela",
-];
-
-export default function CsvUpload({ onValidCsv }) {
+export default function CsvUpload({ onData }) {
   const [error, setError] = useState(null);
-  const [file, setFile] = useState(null);
-  const [isValid, setIsValid] = useState(false);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
+  const readCsvHeaders = async (fileOrUrl) => {
+    let text = "";
+
+    if (typeof fileOrUrl === "string") {
+      const res = await fetch(fileOrUrl);
+      text = await res.text();
+    } else {
+      text = await fileOrUrl.text();
+    }
+
+    const firstLine = text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .find(Boolean);
+
+    if (!firstLine) return [];
+
+    return firstLine.split(";").map((h) => h.trim());
+  };
+
+  const handleFile = async (e) => {
     setError(null);
-    setIsValid(false);
 
-    if (!selectedFile) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    Papa.parse(selectedFile, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const csvColumns = results.meta.fields || [];
+    try {
+      // 1️⃣ Leer cabeceras del CSV subido
+      const csvHeaders = await readCsvHeaders(file);
 
-        // 🔒 VALIDACIÓN ROBUSTA (SIN TOCAR JSX NI ESTILOS)
-        const normalize = (s) =>
-          s.toString().trim().toLowerCase();
+      // 2️⃣ Leer cabeceras de la plantilla oficial
+      const templateHeaders = await readCsvHeaders(
+        "/templates/plantilla_sigpac.csv"
+      );
 
-        const csvCols = csvColumns.map(normalize);
-        const required = TEMPLATE_COLUMNS.map(normalize);
+      // 3️⃣ Comparar EXACTO
+      const sameLength = csvHeaders.length === templateHeaders.length;
+      const sameOrder = csvHeaders.every(
+        (h, i) => h === templateHeaders[i]
+      );
 
-        const missing = required.filter(
-          (col) => !csvCols.includes(col)
+      if (!sameLength || !sameOrder) {
+        throw new Error(
+          "El CSV no coincide con la plantilla oficial. Revisa nombres y orden de columnas."
         );
+      }
 
-        if (missing.length > 0) {
-          setError(
-            "El CSV no coincide con la plantilla SIGPAC. Revisa nombres y orden de columnas."
-          );
-          return;
-        }
+      // 4️⃣ Parsear CSV completo
+      const text = await file.text();
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
 
-        // ✅ CSV válido
-        setFile(selectedFile);
-        setIsValid(true);
-        onValidCsv && onValidCsv(selectedFile);
-      },
-      error: () => {
-        setError("Error al leer el archivo CSV.");
-      },
-    });
+      const headers = lines[0].split(";").map((h) => h.trim());
+
+      const rows = lines.slice(1).map((line) => {
+        const values = line.split(";");
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (values[i] ?? "").trim();
+        });
+        return obj;
+      });
+
+      onData?.(rows);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
-    <>
-      {/* ⚠️ JSX ORIGINAL — NO TOCAR */}
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-        style={{ display: "none" }}
-        id="csv-upload"
-      />
-
-      <label htmlFor="csv-upload" className="csv-upload-button">
+    <div>
+      {/* BOTÓN CSV */}
+      <label
+        style={{
+          display: "block",
+          width: "100%",
+          background: "#3563E9",
+          color: "white",
+          padding: "10px 14px",
+          borderRadius: 10,
+          cursor: "pointer",
+          textAlign: "center",
+          fontWeight: 700,
+          fontSize: 14,
+          boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
+          userSelect: "none",
+        }}
+      >
         📁 Seleccionar archivo CSV
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleFile}
+          style={{ display: "none" }}
+        />
       </label>
 
-      {file && <span style={{ marginLeft: 10 }}>{file.name}</span>}
-
-      <p className="csv-hint">
-        * El archivo debe tener las columnas exactamente iguales que la plantilla.
+      {/* TEXTO DESCRIPTIVO */}
+      <p
+        style={{
+          marginTop: 12,
+          marginBottom: 6,
+          fontSize: 12,
+          lineHeight: 1.4,
+          color: "#ffffff",
+          opacity: 0.9,
+        }}
+      >
+        * El archivo debe tener las columnas{" "}
+        <strong>estrictamente iguales</strong> que el modelo siguiente.
       </p>
 
+      {/* DESCARGA PLANTILLA */}
       <a
-        href="/plantilla_sigpac.csv"
+        href="/templates/plantilla_sigpac.csv"
         download
-        className="csv-download"
+        style={{
+          fontSize: 12,
+          color: "#93c5fd",
+          textDecoration: "underline",
+          cursor: "pointer",
+        }}
       >
-        Descargar plantilla CSV
+        Descargar plantilla CSV de ejemplo
       </a>
 
+      {/* ERROR */}
       {error && (
-        <div className="csv-error">
+        <div
+          style={{
+            marginTop: 10,
+            padding: "8px 10px",
+            borderRadius: 8,
+            background: "#7f1d1d",
+            color: "#fecaca",
+            fontSize: 12,
+          }}
+        >
           ⚠️ {error}
         </div>
       )}
-
-      <button
-        className="csv-submit"
-        disabled={!isValid}
-      >
-        Enviar al servidor
-      </button>
-    </>
+    </div>
   );
 }
