@@ -215,8 +215,11 @@ export default function App() {
           </button>
         </div>
 
-        {sidebarOpen && <CsvUpload onData={setRows} />}
-      </div>
+        {sidebarOpen && (
+  <div style={{ border: "3px solid red", padding: 10 }}>
+    <CsvUpload onData={setRows} />
+  </div>
+)}
 
       {/* MAPA + TOOLBAR */}
       <div style={{ flex: 1, position: "relative" }}>
