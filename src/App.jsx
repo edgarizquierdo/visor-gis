@@ -34,15 +34,17 @@ function haversineMeters(a, b) {
   const s =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
 function polygonAreaHa(latlngs) {
   if (latlngs.length < 3) return 0;
+
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
-
   let sum = 0;
+
   for (let i = 0; i < latlngs.length; i++) {
     const p1 = latlngs[i];
     const p2 = latlngs[(i + 1) % latlngs.length];
@@ -72,7 +74,7 @@ async function fetchSigpacGeoJSON(rows) {
     throw new Error("Error obteniendo parcelas SIGPAC");
   }
 
-  return await res.json(); // GeoJSON
+  return res.json();
 }
 
 // =========================
@@ -125,6 +127,7 @@ export default function App() {
         fillColor: "#ffffff",
         fillOpacity: 1,
       }).addTo(fg);
+
       vertexMarkersRef.current.push(vertex);
 
       // DISTANCIA
@@ -176,13 +179,13 @@ export default function App() {
     }
   }, []);
 
-  // ===== AJUSTE MAPA AL ABRIR/CERRAR SIDEBAR =====
+  // ===== AJUSTE MAPA SIDEBAR =====
   useEffect(() => {
     if (!mapRef.current) return;
     setTimeout(() => mapRef.current.invalidateSize(), 300);
   }, [sidebarOpen]);
 
-  // ===== SIGPAC: CUANDO LLEGAN ROWS =====
+  // ===== SIGPAC =====
   useEffect(() => {
     if (!rows.length || !mapRef.current) return;
 
@@ -192,7 +195,6 @@ export default function App() {
 
         if (sigpacLayerRef.current) {
           sigpacLayerRef.current.remove();
-          sigpacLayerRef.current = null;
         }
 
         const layer = L.geoJSON(geojson, {
@@ -202,16 +204,14 @@ export default function App() {
             fillOpacity: 0.2,
           },
           onEachFeature: (feature, layer) => {
-            if (feature.properties) {
-              const p = feature.properties;
-              layer.bindPopup(`
-                <strong>Parcela SIGPAC</strong><br/>
-                Provincia: ${p.provincia ?? "-"}<br/>
-                Municipio: ${p.municipio ?? "-"}<br/>
-                Polígono: ${p.poligono ?? "-"}<br/>
-                Parcela: ${p.parcela ?? "-"}
-              `);
-            }
+            const p = feature.properties ?? {};
+            layer.bindPopup(`
+              <strong>Parcela SIGPAC</strong><br/>
+              Provincia: ${p.provincia ?? "-"}<br/>
+              Municipio: ${p.municipio ?? "-"}<br/>
+              Polígono: ${p.poligono ?? "-"}<br/>
+              Parcela: ${p.parcela ?? "-"}
+            `);
           },
         }).addTo(mapRef.current);
 
