@@ -55,9 +55,33 @@ function polygonAreaHa(latlngs) {
   return m2 / 10000;
 }
 
+// =========================
+// SERVICIO SIGPAC
+// =========================
+async function fetchSigpacGeoJSON(rows) {
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/parcels/sigpac`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Error obteniendo parcelas SIGPAC");
+  }
+
+  return await res.json(); // GeoJSON
+}
+
+// =========================
+// APP
+// =========================
 export default function App() {
   const mapRef = useRef(null);
   const layerRef = useRef(null);
+  const sigpacLayerRef = useRef(null);
 
   const tempShapeRef = useRef(null);
   const pointsRef = useRef([]);
@@ -68,6 +92,7 @@ export default function App() {
   const [rows, setRows] = useState([]);
   const [mode, setMode] = useState("none");
 
+  // ===== INIT MAPA =====
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -102,6 +127,7 @@ export default function App() {
       }).addTo(fg);
       vertexMarkersRef.current.push(vertex);
 
+      // DISTANCIA
       if (modeRef.current === "distance") {
         if (pointsRef.current.length === 2) {
           const [a, b] = pointsRef.current;
@@ -118,6 +144,7 @@ export default function App() {
         return;
       }
 
+      // ÁREA
       if (!tempShapeRef.current) {
         tempShapeRef.current = L.polygon([latlng], {
           fillOpacity: 0.15,
@@ -149,11 +176,58 @@ export default function App() {
     }
   }, []);
 
+  // ===== AJUSTE MAPA AL ABRIR/CERRAR SIDEBAR =====
   useEffect(() => {
     if (!mapRef.current) return;
     setTimeout(() => mapRef.current.invalidateSize(), 300);
   }, [sidebarOpen]);
 
+  // ===== SIGPAC: CUANDO LLEGAN ROWS =====
+  useEffect(() => {
+    if (!rows.length || !mapRef.current) return;
+
+    (async () => {
+      try {
+        const geojson = await fetchSigpacGeoJSON(rows);
+
+        if (sigpacLayerRef.current) {
+          sigpacLayerRef.current.remove();
+          sigpacLayerRef.current = null;
+        }
+
+        const layer = L.geoJSON(geojson, {
+          style: {
+            color: "#2563eb",
+            weight: 2,
+            fillOpacity: 0.2,
+          },
+          onEachFeature: (feature, layer) => {
+            if (feature.properties) {
+              const p = feature.properties;
+              layer.bindPopup(`
+                <strong>Parcela SIGPAC</strong><br/>
+                Provincia: ${p.provincia ?? "-"}<br/>
+                Municipio: ${p.municipio ?? "-"}<br/>
+                Polígono: ${p.poligono ?? "-"}<br/>
+                Parcela: ${p.parcela ?? "-"}
+              `);
+            }
+          },
+        }).addTo(mapRef.current);
+
+        sigpacLayerRef.current = layer;
+
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+          mapRef.current.fitBounds(bounds, { padding: [20, 20] });
+        }
+      } catch (err) {
+        console.error("SIGPAC:", err);
+      }
+    })();
+  }, [rows]);
+
+  // ===== CONTROLES =====
   const startDistance = () => {
     clearTemp();
     modeRef.current = "distance";
@@ -175,6 +249,7 @@ export default function App() {
     setMode("none");
   };
 
+  // ===== RENDER =====
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex" }}>
       {/* SIDEBAR */}
