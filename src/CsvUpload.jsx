@@ -39,10 +39,19 @@ export default function CsvUpload({ onData }) {
       );
 
       // 3️⃣ Comparar EXACTO
-      const sameLength = csvHeaders.length === templateHeaders.length;
-      const sameOrder = csvHeaders.every(
-        (h, i) => h === templateHeaders[i]
-      );
+      const normalize = (s) =>
+  s
+    .replace(/\uFEFF/g, "") // quita BOM
+    .trim()
+    .toLowerCase();
+
+const csvNorm = csvHeaders.map(normalize);
+const templateNorm = templateHeaders.map(normalize);
+
+const sameLength = csvNorm.length === templateNorm.length;
+const sameOrder = csvNorm.every(
+  (h, i) => h === templateNorm[i]
+);
 
       const isValidTemplate = sameLength && sameOrder;
 
