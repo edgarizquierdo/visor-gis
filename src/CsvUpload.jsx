@@ -83,7 +83,7 @@ export default function CsvUpload({ onData }) {
           width: "100%",
           background: "#3563E9",
           color: "white",
-          padding: "10px 14px",
+          padding: "8px 12px",
           borderRadius: 10,
           cursor: "pointer",
           textAlign: "center",
