@@ -13,3 +13,17 @@
   cursor: pointer;
   max-width: 100%;
 }
+label[for="csv-upload"] {
+  background-color: #4667e8;
+  color: white;
+  padding: 8px 14px;     /* ⬅️ MÁS PEQUEÑO */
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  width: fit-content;
+  max-width: fit-content;
+}
