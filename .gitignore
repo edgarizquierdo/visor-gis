@@ -1,0 +1,22 @@
+# Node
+node_modules/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# Vite
+dist/
+
+# Python / backend
+__pycache__/
+*.pyc
+.venv/
+
+# Backend local (no frontend deploy)
+sigpac-backend/
+
