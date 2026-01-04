@@ -16,5 +16,9 @@
     "leaflet-draw": "^1.0.4",
     "leaflet.polylinemeasure": "^1.0.0",
     "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.10"
   }
 }
+
