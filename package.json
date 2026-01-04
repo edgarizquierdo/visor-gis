@@ -18,7 +18,8 @@
     "papaparse": "^5.4.1"
   },
   "devDependencies": {
-    "vite": "^5.0.10"
+    "vite": "^5.0.10",
+    "@vitejs/plugin-react": "^4.2.1"
   }
 }
 
